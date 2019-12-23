@@ -1,0 +1,14 @@
+name: rna-seq
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - fastp
+  - star
+  - cufflinks
+  - snakemake
+  - cookiecutter
+  - htseq
+ 
+
