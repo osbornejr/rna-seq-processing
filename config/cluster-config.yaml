@@ -1,4 +1,5 @@
-__default__:
+---
+"__default__":
   account: ra94
   name: {rule}-{wildcards}-job
   queue: normal
@@ -8,16 +9,15 @@ __default__:
   mem: 4
   storage: scratch/ra94
 
- 
 clean:
   time: "00:40:00"
   threads: 4
- 
+
 reference:
   time: "01:00:00"
   threads: 16
   mem: 16
-  
+
 align:
   time: "12:00:00"
   threads: 16
