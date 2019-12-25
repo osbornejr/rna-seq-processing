@@ -28,11 +28,14 @@ rule clean:
 		json="reports/{SAMPLE}_fastp.json"
 		#other fastp outputs?
 		# threads?
+	#conda: "environment.yml"
 	shell:
+		'source activate rna-seq &&'
 		'fastp '
 		'-i {input.r1} -I {input.r2} '
 		'-o {output.r1} -O {output.r2} '
 		'-h {output.html} -j {output.json}'
+		'-w {threads}'
 
 rule reference:
 	input:
@@ -40,8 +43,9 @@ rule reference:
 		gtf="reference-input/{REF_GENOME}/{REF_GENOME}.gtf"
 	output:
 		directory('reference-index/{REF_GENOME}')
-	threads: 20
+	#conda: "environment.yml"
 	shell:
+		'source activate rna-seq &&'
 		'mkdir -p {output} && '
 		'STAR --runThreadN {threads} '
 		'--runMode genomeGenerate '
@@ -61,8 +65,9 @@ rule align:
 	output:
 		'aligned-reads/{SAMPLE}_single_pass/Aligned.sortedByCoord.out.bam',
 		'aligned-reads/{SAMPLE}_single_pass/Aligned.toTranscriptome.out.bam'
-	threads: 20
+	#conda: "environment.yml"
 	shell:
+		'source activate rna-seq &&'
 		#'rm -rf {params.outdir} &&'
 		#'mkdir {params.outdir} && '
 		#'cd {params.outdir} && '
@@ -84,8 +89,9 @@ rule align_pass_1:
 		rmbam = 'aligned-reads/{SAMPLE}_pass_1/Aligned.out.bam'
 	output:
 		'aligned-reads/{SAMPLE}_pass_1/SJ.out.tab'
-	threads: 20
-	shell:
+	#conda: "environment.yml"
+	shell:		
+		'source activate rna-seq &&'
 		#rm -rf {params.outdir} && \
 		#mkdir {params.outdir} && \
 		#cd {params.outdir} && \
@@ -101,8 +107,9 @@ rule filter:
 		'aligned-reads/{SAMPLE}_pass_1/SJ.out.tab',
 	output:
 		'splice-junctions/{SAMPLE}_pass_1_SJ.filtered.tab'
-	threads: 1
+	#conda: "environment.yml"
 	shell:
+		'source activate rna-seq &&'
 		'awk "{{if (\$7 >= 3) print \$0 }}" {input[0]} > {input[0]}.filtered && '
 		'mv {input[0]}.filtered {output}'
 
@@ -118,8 +125,9 @@ rule align_pass_2:
 	output:
 		'aligned-reads/{SAMPLE}_pass_2/Aligned.sortedByCoord.out.bam',
 		'aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam'
-	threads: 20
+	#conda: "environment.yml"
 	shell:
+		'source activate rna-seq &&'
 		#'rm -rf {params.outdir} &&'
 		#'mkdir {params.outdir} && '
 		#'cd {params.outdir} && '
@@ -139,7 +147,8 @@ rule htseq:
 	output:
 		'counts/{SAMPLE}_HTSeq_union_gff3_no_gene_ID.log',
 		'counts/{SAMPLE}_HTSeq.csv'
-	threads: 1
+	#conda: "environment.yml"
 	shell:
+		'source activate rna-seq &&'
 		'htseq-count -m union -s no -t gene -i ID -r pos -f bam {input.bam} {input.gff} &> {output[0]} && '
 		'grep ENS {output[0]} | sed "s/gene://g" > {output[1]}'

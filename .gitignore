@@ -1,3 +1,7 @@
 *.snakemake
 *.fastq.gz
 *.fastq
+*.fasta
+*.fasta.gz
+*.gff
+*.gtf

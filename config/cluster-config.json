@@ -2,10 +2,9 @@
 "__default__":
   {
     "account": "ra94",
-    "name": "{rule}-{wildcards}-job",
+    "name": "{rule}-{wildcards.SAMPLE}-job",
     "queue": "normal",
     "time": "00:01:00",
-    "nodes": "1",
     "threads": "1",
     "mem": "4",
     "storage": "scratch/ra94"
