@@ -10,5 +10,6 @@ dependencies:
   - snakemake
   - cookiecutter
   - htseq
- 
+  - samtools
+  - rsem 
 

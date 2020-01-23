@@ -2,7 +2,7 @@
 "__default__":
   {
     "account": "ra94",
-    "name": "{rule}-{wildcards.SAMPLE}-job",
+    "name": "job_{rule}",
     "queue": "normal",
     "time": "00:01:00",
     "threads": "1",
@@ -11,24 +11,24 @@
   },
 "clean":
   {
-    "time": "00:40:00",
+    "time": "00:20:00",
     "threads": "4"
   },
 "reference":
   {
     "time": "01:00:00",
     "threads": "16",
-    "mem": "16"
+    "mem": "32"
   },
 "align":
   {
-    "time": "12:00:00",
+    "time": "05:00:00",
     "threads": "16",
     "mem": "32"
   },
 "align_pass_1":
   {
-    "time": "12:00:00",
+    "time": "05:00:00",
     "threads": "16",
     "mem": "32"
   },
@@ -38,13 +38,19 @@
   },
 "align_pass_2":
   {
-    "time": "12:00:00",
+    "time": "05:00:00",
     "threads": "16",
     "mem": "32"
   },
+"rsem":
+  {
+    "time": "02:00:00",
+    "threads": "16",
+    "mem": "16"
+  },
 "htseq":
   {
-    "time": "05:00:00",
+    "time": "02:00:00",
     "mem": "16"
   }
 }

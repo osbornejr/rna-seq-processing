@@ -3,5 +3,14 @@
 *.fastq
 *.fasta
 *.fasta.gz
-*.gff
+*.gff3
 *.gtf
+counts
+reports
+logs
+gene-counts
+transcript-counts
+aligned-reads
+clean-reads
+reference-index
+splice-junctions
