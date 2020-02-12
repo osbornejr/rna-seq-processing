@@ -7,6 +7,7 @@
     "time": "00:01:00",
     "threads": "1",
     "mem": "4",
+    "temp": "0",
     "storage": "scratch/ra94"
   },
 "clean":
@@ -14,7 +15,7 @@
     "time": "00:20:00",
     "threads": "4"
   },
-"reference":
+"star_reference":
   {
     "time": "01:00:00",
     "threads": "16",
@@ -22,15 +23,17 @@
   },
 "align":
   {
-    "time": "05:00:00",
+    "time": "08:00:00",
     "threads": "16",
-    "mem": "32"
+    "mem": "32",
+    "temp": "100"
   },
 "align_pass_1":
   {
-    "time": "05:00:00",
+    "time": "08:00:00",
     "threads": "16",
-    "mem": "32"
+    "mem": "32", 
+    "temp": "100"
   },
 "filter":
   {
@@ -38,7 +41,14 @@
   },
 "align_pass_2":
   {
-    "time": "05:00:00",
+    "time": "08:00:00",
+    "threads": "16",
+    "mem": "32",
+    "temp": "100"
+  },
+"rsem_reference":
+   {
+    "time": "01:00:00",
     "threads": "16",
     "mem": "32"
   },

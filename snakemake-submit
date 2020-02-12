@@ -1,14 +1,21 @@
 #!/bin/bash
 #PBS -P ra94
 #PBS -q normal
-#PBS -l walltime=04:00:00,mem=100MB,ncpus=1
+#PBS -l walltime=24:00:00,mem=100MB,ncpus=1
 #PBS -l wd
 #PBS -N job
 #PBS -lstorage=scratch/ra94
 #PBS -V
+
+# clean up old job logs
+rm *.e* && rm *.o*
+
+# activate conda environment
 eval "$(conda shell.bash hook)"
 set +u
 conda activate rna-seq
 set -u
+
+# unlock directory and run snakemake command
 snakemake --unlock
 snakemake all --profile cluster --no-hooks --cluster-config config/cluster-config.json --use-conda

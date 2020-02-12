@@ -11,5 +11,6 @@ dependencies:
   - cookiecutter
   - htseq
   - samtools
-  - rsem 
-
+  - rsem
+  - bowtie
+  - trinity  
