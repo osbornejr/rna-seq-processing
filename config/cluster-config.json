@@ -12,7 +12,7 @@
   },
 "clean":
   {
-    "time": "00:20:00",
+    "time": "00:40:00",
     "threads": "4"
   },
 "star_reference":
@@ -20,6 +20,40 @@
     "time": "01:00:00",
     "threads": "16",
     "mem": "32"
+  },
+"trinity_normalisation":
+  {
+    "queue":"normal",
+    "time": "24:00:00",
+    "threads": "16",
+    "mem": "190"
+  },
+"trinity_assembly":
+  {
+    "queue":"hugemem",
+    "time": "48:00:00",
+    "threads": "16",
+    "mem": "1000",
+    "temp":"400"
+  },
+"trinity_assembly_phase_1":
+  {
+    "queue":"hugemem",
+    "time": "24:00:00",
+    "threads": "16",
+    "mem": "1000"
+  },
+"trinity_assembly_phase_2":
+  {
+    "time": "24:00:00",
+    "threads": "1",
+    "mem": "20"
+  },
+"de_novo_abundance":
+  {
+    "time": "03:00:00",
+    "threads": "16",
+    "mem": "16"
   },
 "align":
   {

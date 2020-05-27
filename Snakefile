@@ -1,30 +1,175 @@
-shell.executable("/bin/bash")
+shell.executable
+("/bin/bash")
 SAMPLES=expand("{TYPE}/{TYPE}_sample_{N}/{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range(13)][1:])
 IDS=expand("{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range(13)][1:])
 REF_GENOME="Kabuli_UWA-v2.6.3"
 GENE_CODE="Ca"
 
+trinitydir="trinity-transcriptome-assembly"
+basedir=workflow.basedir
+#Transcriptome assembly using reference genome
+#rule all:
+#	input:
+#		expand("clean-reads/{SAMPLE}_read_{N}_fastp.fastq.gz",SAMPLE=SAMPLES,N=["1","2"]),
+#		expand("reports/{SAMPLE}_fastp.{EXT}",SAMPLE=SAMPLES,EXT=["html","json"]),
+#		#expand('reference-index/{REF_GENOME}_star',REF_GENOME=REF_GENOME),
+#		expand('aligned-reads/{SAMPLE}_pass_1/SJ.out.tab',SAMPLE=SAMPLES),
+#		expand('splice-junctions/{SAMPLE}_pass_1_SJ.filtered.tab',SAMPLE=SAMPLES),
+#		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.sortedByCoord.out.bam',SAMPLE=SAMPLES),
+#		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam',SAMPLE=SAMPLES),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.grp',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.ti',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.seq',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.chrlist',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/SAindex',REF_GENOME=REF_GENOME),
+#		expand('transcript-counts/{SAMPLE}_rsem.isoforms.results',SAMPLE=SAMPLES),
+#		expand('transcript-counts/{SAMPLE}_rsem.genes.results',SAMPLE=SAMPLES),		
+#		#expand('gene-counts/{SAMPLE}_HTSeq_union_gff3_no_gene_ID.log',SAMPLE=SAMPLES),
+#		#expand('gene-counts/{SAMPLE}_HTSeq.csv',SAMPLE=SAMPLES)
 
+#De novo transcriptome assembly
 rule all:
-	input:
+	input:					
 		expand("clean-reads/{SAMPLE}_read_{N}_fastp.fastq.gz",SAMPLE=SAMPLES,N=["1","2"]),
 		expand("reports/{SAMPLE}_fastp.{EXT}",SAMPLE=SAMPLES,EXT=["html","json"]),
-		#expand('reference-index/{REF_GENOME}_star',REF_GENOME=REF_GENOME),
-		expand('aligned-reads/{SAMPLE}_pass_1/SJ.out.tab',SAMPLE=SAMPLES),
-		expand('splice-junctions/{SAMPLE}_pass_1_SJ.filtered.tab',SAMPLE=SAMPLES),
-		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.sortedByCoord.out.bam',SAMPLE=SAMPLES),
-		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam',SAMPLE=SAMPLES),
-		expand('reference-index/{REF_GENOME}/{REF_GENOME}.grp',REF_GENOME=REF_GENOME),
-		expand('reference-index/{REF_GENOME}/{REF_GENOME}.ti',REF_GENOME=REF_GENOME),
-		expand('reference-index/{REF_GENOME}/{REF_GENOME}.seq',REF_GENOME=REF_GENOME),
-		expand('reference-index/{REF_GENOME}/{REF_GENOME}.chrlist',REF_GENOME=REF_GENOME),
-		expand('reference-index/{REF_GENOME}/SAindex',REF_GENOME=REF_GENOME),
-		expand('transcript-counts/{SAMPLE}_rsem.isoforms.results',SAMPLE=SAMPLES),
-		expand('transcript-counts/{SAMPLE}_rsem.genes.results',SAMPLE=SAMPLES),		
-		#expand('gene-counts/{SAMPLE}_HTSeq_union_gff3_no_gene_ID.log',SAMPLE=SAMPLES),
-		#expand('gene-counts/{SAMPLE}_HTSeq.csv',SAMPLE=SAMPLES)
+		basedir+"/normalised-reads/left.norm.fq",
+		basedir+"/normalised-reads/right.norm.fq",
+		trinitydir+"/Trinity.fasta"
+		
+rule trinity_normalisation:
+	input: 
+		left=expand(basedir+"/clean-reads/{SAMPLE}_read_1_fastp.fastq.gz",SAMPLE=SAMPLES),
+                right=expand(basedir+"/clean-reads/{SAMPLE}_read_2_fastp.fastq.gz",SAMPLE=SAMPLES)
+	output: 
+		left=basedir+"/normalised-reads/left.norm.fq",
+		right=basedir+"/normalised-reads/right.norm.fq"
+	
+	run:
+                left=",".join(map(str,input.left))
+                right=",".join(map(str,input.right))
+                shell(
+                'set +u && '
+                'eval "$(conda shell.bash hook)" && '
+                'conda activate rna-seq && '
+                'set -u && '
+		'mkdir -p normalised-reads && '
+		'cd normalised-reads && '
+		'insilico_read_normalization.pl '
+		'--seqType fq '
+		'--JM 100G '
+		'--CPU 16 '
+		'--min_cov 1 '
+		'--max_cov 200 '
+		'--max_CV 10000 '
+		'--left {left} '
+		'--right {right} '
+		'--pairs_together '
+		'--PARALLEL_STATS > ../logs/trinity/trinity_norm.out')
 
 
+##This method works, but is slow because the grid execution will not work when using temporary node storage.
+#rule trinity_assembly:
+#	input:
+#		left=basedir+"/normalised-reads/left.norm.fq",
+#		right=basedir+"/normalised-reads/right.norm.fq"
+#
+#	params:
+#		tempdir="$PBS_JOBFS"
+#	
+#	output:
+#		trinitydir+"/Trinity.fasta"
+#	
+#	shell:
+#		'set +u && '
+#                'eval "$(conda shell.bash hook)" && '
+#                'conda activate rna-seq && '
+#                'set -u && '
+#		#run trinity in grid mode from root of temp drive
+#		'cd {params.tempdir} && '
+#		'Trinity '
+#		#'--grid_exec "'+basedir+'/HpcGridRunner/hpc_cmds_GridRunner.pl --grid_conf '+basedir+'/HpcGridRunner/hpc_conf/nci_trinity.conf -c" '
+#		'--seqType fq '
+#		'--left {input.left} '
+#		'--right {input.right} '
+#		'--CPU 16 '
+#		'--max_memory 950G '
+#		'--no_normalize_reads '
+#		'--output '+trinitydir+' > '+basedir+'/logs/trinity/trinity.out; '
+#		# rescue output files from temp drive before exit
+#		'mv farmit* '+basedir+' && '
+#		'mv '+trinitydir+'/read_partitions/Fb_0/CBin_41 '+basedir+' && '   
+#		'mv {params.tempdir}/'+trinitydir+'/Trinity.fasta {params.tempdir}/'+trinitydir+'/Trinity.fasta.gene_trans_map '+basedir+trinitydir+'/ '
+	
+
+rule trinity_assembly_phase_1:
+	input:
+		left=basedir+"/normalised-reads/left.norm.fq",
+		right=basedir+"/normalised-reads/right.norm.fq"
+	
+	output:
+		trinitydir+"/recursive_trinity.cmds"
+	
+	run:			
+		shell(
+                'set +u && '
+                'eval "$(conda shell.bash hook)" && '
+                'conda activate rna-seq && '
+                'set -u && '
+		'Trinity '
+		'--no_distributed_trinity_exec '
+		'--seqType fq '
+		'--left {input.left} '
+		'--right {input.right} '
+		'--CPU 16 '
+		'--max_memory 950G '
+		#'--no_normalize_reads '
+		'--output '+trinitydir+' > logs/trinity/trinity_phase_1.out && ' 
+		'tar -cvzf '+trinitydir+'/read_partitions.tar.gz '+trinitydir+'/read_partitions && '
+		'rm -r '+trinitydir+'/read_partitions')
+		
+rule trinity_assembly_phase_2:
+	input:
+		trinitydir+"/recursive_trinity.cmds",
+		left=basedir+"/normalised-reads/left.norm.fq",
+		right=basedir+"/normalised-reads/right.norm.fq"
+	
+	params:
+		tempdir="$PBS_JOBFS/"+trinitydir
+	
+	output:
+		trinitydir+"/Trinity.fasta"
+	
+	log:	"logs/trinity/trinity_assembly_phase_2.out"
+	
+	run: 
+		shell(
+                'set +u && '
+                'sfkdjechowww sws && '
+                'conda activate rna-seq && '
+                'set -u && '
+		#symlink in trinity directory to temp drive
+		'BASE_DIR=$PWD && '
+		'mkdir {params.tempdir} && '
+		'cd {params.tempdir} && '
+		'echo $PWD > '+basedir+'/check.out && '
+		'find $BASE_DIR"/'+trinitydir+'/" -mindepth 1 -depth -type d -printf "%P\n"|while read dir; do mkdir -p "$dir"; done && '
+		'find $BASE_DIR"/'+trinitydir+'/" -type f -printf "%P\n" | while read file; do ln -s $BASE_DIR"/'+trinitydir+'/$file" "$file"; done && '
+		'ls >> '+basedir+'/check.out && '
+		#run trinity in grid mode from root of temp drive
+		'cd .. && '
+		'Trinity '
+		'--grid_exec "$BASE_DIR/HpcGridRunner/hpc_cmds_GridRunner.pl --grid_conf $BASE_DIR/HpcGridRunner/hpc_conf/nci.conf -c" '
+		'--seqType fq '
+		'--left {left} '
+		'--right {right} '
+		'--CPU 16 '
+		'--max_memory 10G '
+		'--no_normalize_reads '
+		'--output '+trinitydir+' > '+basedir+'/Trinityphase2.out && '
+		'mv {params.tempdir}/Trinity.fasta '+basedir+'/{output} ')
+		
+		
+	
 rule clean:
 	input:
 		r1="raw-reads/{SAMPLE}_read_1.fastq.gz",

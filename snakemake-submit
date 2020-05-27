@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -P ra94
 #PBS -q normal
-#PBS -l walltime=24:00:00,mem=100MB,ncpus=1
+#PBS -l walltime=48:00:00,mem=100MB,ncpus=1
 #PBS -l wd
 #PBS -N job
 #PBS -lstorage=scratch/ra94
