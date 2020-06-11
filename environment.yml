@@ -7,7 +7,7 @@ dependencies:
   - fastp
   - star
   - cufflinks
-  - snakemake
+  - snakemake=5.10
   - cookiecutter
   - htseq
   - samtools

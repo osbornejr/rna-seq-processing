@@ -5,8 +5,8 @@ IDS=expand("{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range
 REF_GENOME="Kabuli_UWA-v2.6.3"
 GENE_CODE="Ca"
 
-trinitydir="trinity-transcriptome-assembly"
-basedir=workflow.basedir
+trinitydir="trinity-transcriptome-assembly/"
+basedir=workflow.basedir+'/'
 #Transcriptome assembly using reference genome
 #rule all:
 #	input:
@@ -32,17 +32,17 @@ rule all:
 	input:					
 		expand("clean-reads/{SAMPLE}_read_{N}_fastp.fastq.gz",SAMPLE=SAMPLES,N=["1","2"]),
 		expand("reports/{SAMPLE}_fastp.{EXT}",SAMPLE=SAMPLES,EXT=["html","json"]),
-		basedir+"/normalised-reads/left.norm.fq",
-		basedir+"/normalised-reads/right.norm.fq",
-		trinitydir+"/Trinity.fasta"
+		basedir+"normalised-reads/left.norm.fq",
+		basedir+"normalised-reads/right.norm.fq",
+		trinitydir+"Trinity.fasta"
 		
 rule trinity_normalisation:
 	input: 
-		left=expand(basedir+"/clean-reads/{SAMPLE}_read_1_fastp.fastq.gz",SAMPLE=SAMPLES),
-                right=expand(basedir+"/clean-reads/{SAMPLE}_read_2_fastp.fastq.gz",SAMPLE=SAMPLES)
+		left=expand(basedir+"clean-reads/{SAMPLE}_read_1_fastp.fastq.gz",SAMPLE=SAMPLES),
+                right=expand(basedir+"clean-reads/{SAMPLE}_read_2_fastp.fastq.gz",SAMPLE=SAMPLES)
 	output: 
-		left=basedir+"/normalised-reads/left.norm.fq",
-		right=basedir+"/normalised-reads/right.norm.fq"
+		left=basedir+"normalised-reads/left.norm.fq",
+		right=basedir+"normalised-reads/right.norm.fq"
 	
 	run:
                 left=",".join(map(str,input.left))
@@ -100,14 +100,17 @@ rule trinity_normalisation:
 #		'mv '+trinitydir+'/read_partitions/Fb_0/CBin_41 '+basedir+' && '   
 #		'mv {params.tempdir}/'+trinitydir+'/Trinity.fasta {params.tempdir}/'+trinitydir+'/Trinity.fasta.gene_trans_map '+basedir+trinitydir+'/ '
 	
-
+#This rule runs Trinity phase 1 using the storage on a highmemory node in Gadi. This allows unlimited numbers of files to be created  (and could theoretically mean running without any normalisation?). The resulting read partitions are zipped up and re-stored locally, along with the recursive commands required in phase 2. (On other systems this method might not be necessary depending on file count quotas. In any case, the below rule is currently context specific to a PBS/Gadi/NCI framework) TODO remove this reliance?  
 rule trinity_assembly_phase_1:
 	input:
-		left=basedir+"/normalised-reads/left.norm.fq",
-		right=basedir+"/normalised-reads/right.norm.fq"
+		left=basedir+"normalised-reads/left.norm.fq",
+		right=basedir+"normalised-reads/right.norm.fq"
 	
+	params:	
+		tempdir="$PBS_JOBFS"
+
 	output:
-		trinitydir+"/recursive_trinity.cmds"
+		trinitydir+"recursive_trinity.cmds"
 	
 	run:			
 		shell(
@@ -115,6 +118,8 @@ rule trinity_assembly_phase_1:
                 'eval "$(conda shell.bash hook)" && '
                 'conda activate rna-seq && '
                 'set -u && '
+		#run trinity in grid mode from root of temp drive
+		'cd {params.tempdir} && '
 		'Trinity '
 		'--no_distributed_trinity_exec '
 		'--seqType fq '
@@ -123,42 +128,37 @@ rule trinity_assembly_phase_1:
 		'--CPU 16 '
 		'--max_memory 950G '
 		#'--no_normalize_reads '
-		'--output '+trinitydir+' > logs/trinity/trinity_phase_1.out && ' 
-		'tar -cvzf '+trinitydir+'/read_partitions.tar.gz '+trinitydir+'/read_partitions && '
-		'rm -r '+trinitydir+'/read_partitions')
-		
+		'--output '+trinitydir+' > '+basedir+'logs/trinity/trinity_phase_1.out && ' 
+		'tar -cvzf '+basedir+trinitydir+'read_partitions.tar.gz '+trinitydir+'read_partitions && '
+		"""sed -i 's/"{params.tempdir}/"""+trinitydir+""""/./g' """+trinitydir+"""recursive_trinity.cmds && """
+		'mv '+trinitydir+'recursive_trinity.cmds '+basedir+trinitydir+'recursive_trinity.cmds')
+		#'rm -r '+trinitydir+'/read_partitions')
+#TODO this rule	could either be run outside of trinity, manually pasting together the segment runs at the end, or the parallel command could possibly be passed as a --grid_exec command to trinity phase 2. The latter is neater, but will require all of the phase one .ok files to be passed as well. perhaps as simple as zipping EVERYTHINg up after phase 1.	
 rule trinity_assembly_phase_2:
 	input:
-		trinitydir+"/recursive_trinity.cmds",
-		left=basedir+"/normalised-reads/left.norm.fq",
-		right=basedir+"/normalised-reads/right.norm.fq"
+		trinitydir+"recursive_trinity.cmds",
+		left=basedir+"normalised-reads/left.norm.fq",
+		right=basedir+"normalised-reads/right.norm.fq"
 	
 	params:
-		tempdir="$PBS_JOBFS/"+trinitydir
+		tempdir="$PBS_JOBFS/"
 	
 	output:
-		trinitydir+"/Trinity.fasta"
+		trinitydir+"Trinity.fasta"
 	
 	log:	"logs/trinity/trinity_assembly_phase_2.out"
 	
 	run: 
 		shell(
-                'set +u && '
-                'sfkdjechowww sws && '
-                'conda activate rna-seq && '
-                'set -u && '
-		#symlink in trinity directory to temp drive
-		'BASE_DIR=$PWD && '
-		'mkdir {params.tempdir} && '
 		'cd {params.tempdir} && '
-		'echo $PWD > '+basedir+'/check.out && '
-		'find $BASE_DIR"/'+trinitydir+'/" -mindepth 1 -depth -type d -printf "%P\n"|while read dir; do mkdir -p "$dir"; done && '
-		'find $BASE_DIR"/'+trinitydir+'/" -type f -printf "%P\n" | while read file; do ln -s $BASE_DIR"/'+trinitydir+'/$file" "$file"; done && '
-		'ls >> '+basedir+'/check.out && '
+		'mkdir '+trinitydir+' && '
+		'cd '+trinitydir+' && '
+		'tar -xvzf '+basedir+trinitydir+'read_partitions.tar.gz && '
+		'mv '+basedir+trinitydir+'recursive_trinity.cmds && '
 		#run trinity in grid mode from root of temp drive
 		'cd .. && '
 		'Trinity '
-		'--grid_exec "$BASE_DIR/HpcGridRunner/hpc_cmds_GridRunner.pl --grid_conf $BASE_DIR/HpcGridRunner/hpc_conf/nci.conf -c" '
+		'--grid_exec "parallel -j ${PBS_NCPUS} pbsdsh -n {%} -- bash -l < " '
 		'--seqType fq '
 		'--left {left} '
 		'--right {right} '
