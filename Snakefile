@@ -110,7 +110,7 @@ rule trinity_assembly_phase_1:
 		tempdir="$PBS_JOBFS"
 
 	output:
-		trinitydir+"recursive_trinity.cmds"
+		trinitydir+"phase_1.tar.gz"
 	
 	run:			
 		shell(
@@ -127,16 +127,15 @@ rule trinity_assembly_phase_1:
 		'--right {input.right} '
 		'--CPU 16 '
 		'--max_memory 950G '
-		#'--no_normalize_reads '
+		'--no_normalize_reads '
 		'--output '+trinitydir+' > '+basedir+'logs/trinity/trinity_phase_1.out && ' 
-		'tar -cvzf '+basedir+trinitydir+'read_partitions.tar.gz '+trinitydir+'read_partitions && '
-		"""sed -i 's/"{params.tempdir}/"""+trinitydir+""""/./g' """+trinitydir+"""recursive_trinity.cmds && """
-		'mv '+trinitydir+'recursive_trinity.cmds '+basedir+trinitydir+'recursive_trinity.cmds')
-		#'rm -r '+trinitydir+'/read_partitions')
+		"""sed -i 's/"{params.tempdir}/"""+trinitydir+""""/PHASE_2_PREFIX/g' """+trinitydir+"""recursive_trinity.cmds && """
+		'tar -cvzf '+basedir+trinitydir+'phase_1.tar.gz '+trinitydir)  
+
 #TODO this rule	could either be run outside of trinity, manually pasting together the segment runs at the end, or the parallel command could possibly be passed as a --grid_exec command to trinity phase 2. The latter is neater, but will require all of the phase one .ok files to be passed as well. perhaps as simple as zipping EVERYTHINg up after phase 1.	
 rule trinity_assembly_phase_2:
 	input:
-		trinitydir+"recursive_trinity.cmds",
+		trinitydir+"phase_1.tar.gz",
 		left=basedir+"normalised-reads/left.norm.fq",
 		right=basedir+"normalised-reads/right.norm.fq"
 	
@@ -144,6 +143,7 @@ rule trinity_assembly_phase_2:
 		tempdir="$PBS_JOBFS/"
 	
 	output:
+		trinitydir+"phase_2.tar.gz",
 		trinitydir+"Trinity.fasta"
 	
 	log:	"logs/trinity/trinity_assembly_phase_2.out"
@@ -151,22 +151,22 @@ rule trinity_assembly_phase_2:
 	run: 
 		shell(
 		'cd {params.tempdir} && '
-		'mkdir '+trinitydir+' && '
-		'cd '+trinitydir+' && '
-		'tar -xvzf '+basedir+trinitydir+'read_partitions.tar.gz && '
-		'mv '+basedir+trinitydir+'recursive_trinity.cmds && '
+		'tar -xvzf '+basedir+trinitydir+'phase_1.tar.gz && '
+		"""sed -i 's/PHASE_2_PREFIX/"{params.tempdir}/"""+trinitydir+""""/g' """+trinitydir+"""recursive_trinity.cmds && """
 		#run trinity in grid mode from root of temp drive
-		'cd .. && '
 		'Trinity '
-		'--grid_exec "parallel -j ${PBS_NCPUS} pbsdsh -n {%} -- bash -l < " '
+		"""--grid_exec "parallel -j ${PBS_NCPUS} pbsdsh -n {%} -- bash -l -c '{}'< " """
 		'--seqType fq '
 		'--left {left} '
 		'--right {right} '
 		'--CPU 16 '
 		'--max_memory 10G '
 		'--no_normalize_reads '
-		'--output '+trinitydir+' > '+basedir+'/Trinityphase2.out && '
-		'mv {params.tempdir}/Trinity.fasta '+basedir+'/{output} ')
+		'--output '+trinitydir+' > '+basedir+'/logs/trinity/trinity_phase_2.out && '
+		'tar -cvzf '+basedir+trinitydir+'phase_2.tar.gz '+trinitydiri+' && '
+		'cd '+basedir+trinitydir+' && '
+		'tar -xvzf phase_2.tar.gz && '
+		'mv '+trinitydir+'Trinity.fasta ./') 
 		
 		
 	
