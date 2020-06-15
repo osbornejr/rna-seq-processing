@@ -46,8 +46,8 @@
 "trinity_assembly_phase_2":
   {
     "time": "01:00:00",
-    "threads": "1152",
-    "mem": "2304"
+    "threads": "48",
+    "mem": "96"
   },
 "de_novo_abundance":
   {
