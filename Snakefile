@@ -105,7 +105,7 @@ rule trinity_assembly_phase_1:
 		right=basedir+"normalised-reads/right.norm.fq"
 	
 	params:	
-		tempdir="$PBS_JOBFS"
+		tempdir="$PBS_JOBFS/"
 
 	output:
 		trinitydir+"phase_1.tar.gz"
