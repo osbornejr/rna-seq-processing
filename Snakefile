@@ -44,16 +44,14 @@ rule trinity_normalisation:
 		left=basedir+"normalised-reads/left.norm.fq",
 		right=basedir+"normalised-reads/right.norm.fq"
 	
+	log: 	
+		basedir+"logs/trinity/trinity_assembly_phase_1.out"	
 	run:
                 left=",".join(map(str,input.left))
                 right=",".join(map(str,input.right))
                 shell(
-                'set +u && '
-                'eval "$(conda shell.bash hook)" && '
-                'conda activate rna-seq && '
-                'set -u && '
-		'mkdir -p normalised-reads && '
-		'cd normalised-reads && '
+		'mkdir -p normalised-reads >> {log} && '
+		'cd normalised-reads >> {log} && '
 		'insilico_read_normalization.pl '
 		'--seqType fq '
 		'--JM 100G '
@@ -64,7 +62,7 @@ rule trinity_normalisation:
 		'--left {left} '
 		'--right {right} '
 		'--pairs_together '
-		'--PARALLEL_STATS > ../logs/trinity/trinity_norm.out')
+		'--PARALLEL_STATS >> {log}')
 
 
 ##This method works, but is slow because the grid execution will not work when using temporary node storage.
@@ -112,14 +110,12 @@ rule trinity_assembly_phase_1:
 	output:
 		trinitydir+"phase_1.tar.gz"
 	
+	log: 	
+		basedir+"logs/trinity/trinity_assembly_phase_1.out"	
 	run:			
 		shell(
-                'set +u && '
-                'eval "$(conda shell.bash hook)" && '
-                'conda activate rna-seq && '
-                'set -u && '
 		#run trinity in grid mode from root of temp drive
-		'cd {params.tempdir} && '
+		'cd {params.tempdir} >> {log} && '
 		'Trinity '
 		'--no_distributed_trinity_exec '
 		'--seqType fq '
@@ -128,9 +124,9 @@ rule trinity_assembly_phase_1:
 		'--CPU 16 '
 		'--max_memory 950G '
 		'--no_normalize_reads '
-		'--output '+trinitydir+' > '+basedir+'logs/trinity/trinity_phase_1.out && ' 
-		"""sed -i 's~"{params.tempdir}"""+trinitydir+""""~PHASE_2_PREFIX~g' """+trinitydir+"""recursive_trinity.cmds && """
-		'tar -cvzf '+basedir+trinitydir+'phase_1.tar.gz '+trinitydir)  
+		'--output '+trinitydir+'  >> {log} && ' 
+		"""sed -i 's~"{params.tempdir}"""+trinitydir+""""~PHASE_2_PREFIX~g' """+trinitydir+"""recursive_trinity.cmds >> {log} && """
+		'tar -cvzf '+basedir+trinitydir+'phase_1.tar.gz '+trinitydir+' >> {log} ' )  
 
 #TODO this rule	could either be run outside of trinity, manually pasting together the segment runs at the end, or the parallel command could possibly be passed as a --grid_exec command to trinity phase 2. The latter is neater, but will require all of the phase one .ok files to be passed as well. perhaps as simple as zipping EVERYTHINg up after phase 1.	
 rule trinity_assembly_phase_2:
