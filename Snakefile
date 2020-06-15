@@ -140,7 +140,8 @@ rule trinity_assembly_phase_2:
 		right=basedir+"normalised-reads/right.norm.fq"
 	
 	params:
-		tempdir="$PBS_JOBFS/"
+		tempdir="$PBS_JOBFS/",
+		n_cpus="$PBS_NCPUS"
 	
 	output:
 		trinitydir+"phase_2.tar.gz",
@@ -153,15 +154,15 @@ rule trinity_assembly_phase_2:
 		"""sed -i 's~PHASE_2_PREFIX~"{params.tempdir}"""+trinitydir+""""~g' """+trinitydir+"""recursive_trinity.cmds && """
 		#run trinity in grid mode from root of temp drive
 		'Trinity '
-		"""--grid_exec "parallel -j ${PBS_NCPUS} pbsdsh -n {%} -- bash -l -c '{}'< " """
+		"""--grid_exec "parallel -j {params.n_cpus} pbsdsh -n {{%}} -- bash -l -c '{{}}'< " """
 		'--seqType fq '
-		'--left {left} '
-		'--right {right} '
+		'--left {input.left} '
+		'--right {input.right} '
 		'--CPU 16 '
 		'--max_memory 10G '
 		'--no_normalize_reads '
 		'--output '+trinitydir+' > '+basedir+'/logs/trinity/trinity_phase_2.out && '
-		'tar -cvzf '+basedir+trinitydir+'phase_2.tar.gz '+trinitydiri+' && '
+		'tar -cvzf '+basedir+trinitydir+'phase_2.tar.gz '+trinitydir+' && '
 		'cd '+basedir+trinitydir+' && '
 		'tar -xvzf phase_2.tar.gz && '
 		'mv '+trinitydir+'Trinity.fasta ./') 
