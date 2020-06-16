@@ -148,10 +148,12 @@ rule trinity_assembly_phase_2:
 		shell(
 		'cd {params.tempdir} >>	{log} && '
 		'tar -xvzf '+basedir+trinitydir+'phase_1.tar.gz >> {log} && '
-		"""sed -i 's~PHASE_2_PREFIX~"{params.tempdir}"""+trinitydir+""""~g' """+trinitydir+"""recursive_trinity.cmds >> {log} && """
-		#run trinity in grid mode from root of temp drive
+		#"""sed -i 's~PHASE_2_PREFIX~"{params.tempdir}"""+trinitydir+""""~g' """+trinitydir+"""recursive_trinity.cmds >> {log} && """
+		"""sed -i 's~/jobfs/6915977.gadi-pbs/"""+trinitydir+"""~{params.tempdir}"""+trinitydir+"""~g' """+trinitydir+"""recursive_trinity.cmds >> {log} && """
+		'head recursive_trinity.cmds >> {log} && '
+		##run trinity in grid mode from root of temp drive
 		'Trinity '
-		"""--grid_exec "parallel -j {params.n_cpus} pbsdsh -n {{%}} -- bash -l -c '{{}}'< " """
+		#"""--grid_exec "parallel -j {params.n_cpus} pbsdsh -n {{%}} -- bash -l -c '{{}}'< " """
 		'--seqType fq '
 		'--left {input.left} '
 		'--right {input.right} '
