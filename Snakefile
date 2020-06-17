@@ -149,7 +149,6 @@ rule trinity_assembly_phase_2:
 		shell(
 		'cd {params.tempdir} >>	{log} && '
 		'tar -xzf '+basedir+trinitydir+'phase_1.tar.gz >> {log} && '
-		"""sed -i 's~/jobfs/7062860.gadi-pbs/"""+trinitydir+"""~PHASE_2_PREFIX~g' """+trinitydir+"""recursive_trinity.cmds >> {log} && """
 		"""sed -i 's~PHASE_2_PREFIX~{params.tempdir}"""+trinitydir+"""~g' """+trinitydir+"""recursive_trinity.cmds >> {log} && """
 		'head '+trinitydir+'recursive_trinity.cmds >> {log} && '
 		##run trinity in grid mode from root of temp drive
