@@ -125,8 +125,9 @@ rule trinity_assembly_phase_1:
 		'--max_memory 950G '
 		'--no_normalize_reads '
 		'--output '+trinitydir+'  >> {log} && ' 
-		"""sed -i 's~"{params.tempdir}"""+trinitydir+""""~PHASE_2_PREFIX~g' """+trinitydir+"""recursive_trinity.cmds >> {log} && """
-		'tar -cvzf '+basedir+trinitydir+'phase_1.tar.gz '+trinitydir+' >> {log} ' )  
+		"""sed -i 's~{params.tempdir}"""+trinitydir+"""~PHASE_2_PREFIX~g' """+trinitydir+"""recursive_trinity.cmds >> {log} && """
+		'head '+trinitydir+'recursive_trinity.cmds >> {log} && '
+		'tar -czf '+basedir+trinitydir+'phase_1.tar.gz '+trinitydir+'recursive_trinity.cmds '+trinitydir+'/read_partitions >> {log} ' )  
 
 #TODO this rule	could either be run outside of trinity, manually pasting together the segment runs at the end, or the parallel command could possibly be passed as a --grid_exec command to trinity phase 2. The latter is neater, but will require all of the phase one .ok files to be passed as well. perhaps as simple as zipping EVERYTHINg up after phase 1.	
 rule trinity_assembly_phase_2:
@@ -147,7 +148,8 @@ rule trinity_assembly_phase_2:
 	run: 
 		shell(
 		'cd {params.tempdir} >>	{log} && '
-		'tar -xvzf '+basedir+trinitydir+'phase_1.tar.gz >> {log} && '
+		'tar -xzf '+basedir+trinitydir+'phase_1.tar.gz >> {log} && '
+		"""sed -i 's~/jobfs/7062860.gadi-pbs/"""+trinitydir+"""~PHASE_2_PREFIX~g' """+trinitydir+"""recursive_trinity.cmds >> {log} && """
 		"""sed -i 's~PHASE_2_PREFIX~{params.tempdir}"""+trinitydir+"""~g' """+trinitydir+"""recursive_trinity.cmds >> {log} && """
 		'head '+trinitydir+'recursive_trinity.cmds >> {log} && '
 		##run trinity in grid mode from root of temp drive
