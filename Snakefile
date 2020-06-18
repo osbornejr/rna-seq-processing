@@ -138,6 +138,7 @@ rule trinity_assembly_phase_2:
 	
 	params:
 		tempdir="$PBS_JOBFS/",
+		basedir=basedir,
 		n_cpus="$PBS_NCPUS"
 	
 	output:
@@ -152,15 +153,15 @@ rule trinity_assembly_phase_2:
 		'sed -i "s~PHASE_2_PREFIX~'+trinitydir+'~g" {params.tempdir}'+trinitydir+'recursive_trinity.cmds && '
 		'head {params.tempdir}'+trinitydir+'recursive_trinity.cmds >> {log} && '
 		#parallel command- first pass commands and set up parallel parameters 
-		"""cat {params.tempdir}"""+trinitydir+"""recursive_trinity.cmds | parallel --dryrun --colsep '"' -j $(({params.n_cpus}-1)) """
+		"""parallel --colsep '"' -j $(({params.n_cpus}-1)) """
 		#then for given line from .cmds, move input file to base directory. This is done using last cpu (the "housekeeper") which is always from Node 0 on Gadi (TODO might need more housekeepers?)
-		"""'pbsdsh -n {params.n_cpus} -- bash -l -c "mkdir -p {{2//}}; mv {params.tempdir}{{2}} $_"; """
+		"""pbsdsh -n {params.n_cpus} -- bash -l -c "echo $PWD;mkdir -p {{2//}}; mv {params.tempdir}{{2}} {{2//}}" < {params.tempdir}"""+trinitydir+"""recursive_trinity.cmds """)
 		#now run cmd on the next available core
-		"""pbsdsh -n {{%}} -- bash -l -c "{{}}"; """
+	#	"""pbsdsh -n {{%}} -- bash -l -c "{{}}";' """)  
 		#once cmd is complete, move output .fasta back to Node 0, and remove all other cmd artifacts 
-   		"""pbsdsh -n {params.n_cpus} -- bash -l -c "mkdir -p {params.tempdir}{{4}}; mv {{4}}/*Trinity.fasta $_; rm -r {{2}} {{4}}; rmdir -p {{2//}} "'  && """
-		#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity
-		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta ')	
+   	#	"""pbsdsh -n {params.n_cpus} -- bash -l -c "mkdir -p {params.tempdir}{{4}}; mv {{4}}/*Trinity.fasta $_; rm -r {{2}} {{4}}; rmdir -p {{2//}}" '  && """
+	#	#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity
+	#	'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta ')	
 
 	##run trinity in grid mode from root of temp drive
 	#	'Trinity '
