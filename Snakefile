@@ -160,7 +160,7 @@ rule trinity_assembly_phase_2:
 		'export -f trinity_bounce && '
 		#run GNU parallel to distribute and bounce cmds to available nodes
 		"""parallel --colsep '"' --env trinity_bounce -j $PBS_NCPUS -I ,,  trinity_bounce ,1, ,2, ,3, ,4, ,5, ,2//, ,%, < {params.tempdir}"""+trinitydir+""""recursive_trinity.cmds && """
-	#	#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity
+	#	#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity TODO need more than just fasta file to annotate?
 		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta ')	
 	##run trinity in grid mode from root of temp drive
 	#	'Trinity '
