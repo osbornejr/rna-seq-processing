@@ -165,6 +165,7 @@ rule trinity_assembly_phase_2:
 		"""parallel --colsep '"' --env trinity_bounce -j $PBS_NCPUS trinity_bounce {{1}} {{2}} {{3}} {{4}} {{5}} {{2//}} {{%}} < {params.tempdir}"""+trinitydir+"""recursive_trinity.cmds && """
 	#	#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity TODO need more than just fasta file to annotate?
 		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta ')	
+		'rm -rf '+trinitydir+'read_partitions && '
 	##run trinity in grid mode from root of temp drive
 	#	'Trinity '
 	#	"""--grid_exec "parallel -j {params.n_cpus} pbsdsh -n {{%}} -- bash -l -c '{{}}'< " """
