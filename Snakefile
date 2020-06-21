@@ -154,7 +154,7 @@ rule trinity_assembly_phase_2:
 		'head {params.tempdir}'+trinitydir+'recursive_trinity.cmds >> {log} && '
 		#write bounce commands to be run on each cmd. The last CPU will always belong to Node 0, where phase 1 should be extracted to. This node is used as a housekeeper to move inputs and outputs between Node 0 and the scratch drive. All other CPUS will be assigned to 			process a specific command from recursive_trinity.cmds. TODO may need more than one housekeeper?
 		'trinity_bounce() {{ '
-		'basedir="/scratch/ra94/jr6283/rna-seq-processing"; '
+		'basedir='+basedir+'; '
 		'pbsdsh -n {params.n_cpus} -- bash -l -c "cd $basedir; mkdir -p $6; mv {params.tempdir}$2 $6;"; '
 		'pbsdsh -n $7 -- bash -l -c "cd $basedir;$1 $2 $3 $4 $5;"; '
 		'pbsdsh -n {params.tempdir} -- bash -l -c "cd $basedir;mv $4.Trinity.fasta {params.tempdir}$6;rm $2;rmdir -p --ignore-fail-on-non-empty $6;"; }} && '
