@@ -159,6 +159,8 @@ rule trinity_assembly_phase_2:
 		'pbsdsh -n $7 -- bash -l -c "cd $basedir;$1 $2 $3 $4 $5;"; '
 		'pbsdsh -n {params.tempdir} -- bash -l -c "cd $basedir;mv $4.Trinity.fasta {params.tempdir}$6;rm $2;rmdir -p --ignore-fail-on-non-empty $6;"; }} && '
 		'export -f trinity_bounce && '
+		# remove any relics of past runs
+		'rm -rf '+trinitydir+'read_partitions && '
 		#run GNU parallel to distribute and bounce cmds to available nodes
 		"""parallel --colsep '"' --env trinity_bounce -j $PBS_NCPUS trinity_bounce {{1}} {{2}} {{3}} {{4}} {{5}} {{2//}} {{%}} < {params.tempdir}"""+trinitydir+"""recursive_trinity.cmds && """
 	#	#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity TODO need more than just fasta file to annotate?
