@@ -164,9 +164,11 @@ rule trinity_assembly_phase_2:
 		'rm -rf '+trinitydir+'read_partitions && '
 		#run GNU parallel to distribute and bounce cmds to available nodes. Note that parallel is given one node less than the total (Node 0 will be for housekeeping, as prescribed in trinity_bounce
 		"""parallel --colsep '"' --env trinity_bounce -j $(({params.n_cpus}-{params.threads_per_node})) trinity_bounce {{1}} {{2}} {{3}} {{4}} {{5}} {{2//}} {{%}} < {params.tempdir}"""+trinitydir+"""recursive_trinity.cmds && """
+		#save job directory to zip (very precious)
+		'tar -cvzf '+trinitydir+'phase_2.tar.gz {params.tempdir}'+trinitydir+' >> {log} && '  
 	#	#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity TODO need more than just fasta file to annotate?
-		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta ')	
-		'rm -rf '+trinitydir+'read_partitions && '
+		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta >> {log} && '	
+		'rm -rf '+trinitydir+'read_partitions ')
 	##run trinity in grid mode from root of temp drive
 	#	'Trinity '
 	#	"""--grid_exec "parallel -j {params.n_cpus} pbsdsh -n {{%}} -- bash -l -c '{{}}'< " """
