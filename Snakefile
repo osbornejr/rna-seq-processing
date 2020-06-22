@@ -157,7 +157,7 @@ rule trinity_assembly_phase_2:
 		'trinity_bounce() {{ '
 		'basedir='+basedir+'; '
 		'mkdir -p $6 &>> {log}; mv {params.tempdir}$2 $6 &>> {log}; '
-		'pbsdsh -n $(($7+{params.threads_per_node}-1)) -- bash -l -c "cd $basedir;$1 $2 $3 $4 $5 &>> {log};"; '
+		'pbsdsh -n $(($7+{params.threads_per_node}-1)) -- bash -l -c "cd $basedir;$1 $2 $3 $4 $5 &>> {log};" &>> {log} ; '
 		'mv $4.Trinity.fasta {params.tempdir}$6;rm $2 &>> {log};rmdir -p --ignore-fail-on-non-empty $6 &>> {log}; }} && '
 		'export -f trinity_bounce && '
 		# remove any relics of past runs
