@@ -139,7 +139,8 @@ rule trinity_assembly_phase_2:
 	params:
 		tempdir="$PBS_JOBFS/",
 		basedir=basedir,
-		n_cpus="$PBS_NCPUS"
+		n_cpus="$PBS_NCPUS",
+		threads_per_node=48
 	
 	output:
 		trinitydir+"phase_2.tar.gz",
@@ -155,14 +156,14 @@ rule trinity_assembly_phase_2:
 		#write bounce commands to be run on each cmd. The last CPU will always belong to Node 0, where phase 1 should be extracted to. This node is used as a housekeeper to move inputs and outputs between Node 0 and the scratch drive. All other CPUS will be assigned to 			process a specific command from recursive_trinity.cmds. TODO may need more than one housekeeper?
 		'trinity_bounce() {{ '
 		'basedir='+basedir+'; '
-		'pbsdsh -n {params.n_cpus} -- bash -l -c "cd $basedir; mkdir -p $6; mv {params.tempdir}$2 $6;"; '
-		'pbsdsh -n $7 -- bash -l -c "cd $basedir;$1 $2 $3 $4 $5;"; '
-		'pbsdsh -n {params.tempdir} -- bash -l -c "cd $basedir;mv $4.Trinity.fasta {params.tempdir}$6;rm $2;rmdir -p --ignore-fail-on-non-empty $6;"; }} && '
+		'mkdir -p $6; mv {params.tempdir}$2 $6; '
+		'pbsdsh -n $(($7+{params.threads_per_node}-1)) -- bash -l -c "cd $basedir;$1 $2 $3 $4 $5;"; '
+		'mv $4.Trinity.fasta {params.tempdir}$6;rm $2;rmdir -p --ignore-fail-on-non-empty $6; }} && '
 		'export -f trinity_bounce && '
 		# remove any relics of past runs
 		'rm -rf '+trinitydir+'read_partitions && '
-		#run GNU parallel to distribute and bounce cmds to available nodes
-		"""parallel --colsep '"' --env trinity_bounce -j $PBS_NCPUS trinity_bounce {{1}} {{2}} {{3}} {{4}} {{5}} {{2//}} {{%}} < {params.tempdir}"""+trinitydir+"""recursive_trinity.cmds && """
+		#run GNU parallel to distribute and bounce cmds to available nodes. Note that parallel is given one node less than the total (Node 0 will be for housekeeping, as prescribed in trinity_bounce
+		"""parallel --colsep '"' --env trinity_bounce -j $(({params.n_cpus}-{params.threads_per_node})) trinity_bounce {{1}} {{2}} {{3}} {{4}} {{5}} {{2//}} {{%}} < {params.tempdir}"""+trinitydir+"""recursive_trinity.cmds && """
 	#	#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity TODO need more than just fasta file to annotate?
 		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta ')	
 		'rm -rf '+trinitydir+'read_partitions && '
