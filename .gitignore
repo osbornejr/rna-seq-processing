@@ -17,3 +17,5 @@ splice-junctions
 normalised-reads
 trinity-transcriptome-assembly
 test*
+*.e*
+*.o*
