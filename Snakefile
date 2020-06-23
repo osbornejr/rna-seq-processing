@@ -163,7 +163,7 @@ rule trinity_assembly_phase_2:
 		# remove any relics of past runs
 		'rm -rf '+trinitydir+'read_partitions && '
 		#run GNU parallel to distribute and bounce cmds to available nodes. Note that parallel is given one node less than the total (Node 0 will be for housekeeping, as prescribed in trinity_bounce
-		"""cat {params.tempdir}"""+trinitydir+"""recursive_trinity.cmds | head -n 48 | parallel --colsep '"' --env trinity_bounce -j $(({params.n_cpus}-{params.threads_per_node})) trinity_bounce {{1}} {{2}} {{3}} {{4}} {{5}} {{2//}} {{%}}  && """
+		"""cat {params.tempdir}"""+trinitydir+"""recursive_trinity.cmds | parallel --colsep '"' --env trinity_bounce -j $(({params.n_cpus}-{params.threads_per_node})) trinity_bounce {{1}} {{2}} {{3}} {{4}} {{5}} {{2//}} {{%}}  && """
 		#save job directory to zip (very precious)
 		'cd {params.tempdir} && '
 		'tar -cvzf '+basedir+trinitydir+'phase_2.tar.gz '+trinitydir+' >> {log} && '  
