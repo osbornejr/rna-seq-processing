@@ -7,6 +7,8 @@ GENE_CODE="Ca"
 
 trinitydir="trinity-transcriptome-assembly/"
 basedir=workflow.basedir+'/'
+#TODO put long shell commands into scripts and source?
+#TODO split Snakefile into two separate sub workflows, de novo and reference assembly 
 #Transcriptome assembly using reference genome
 #rule all:
 #	input:
@@ -129,7 +131,19 @@ rule trinity_assembly_phase_1:
 		'head '+trinitydir+'recursive_trinity.cmds >> {log} && '
 		'tar -czf '+basedir+trinitydir+'phase_1.tar.gz '+trinitydir+'recursive_trinity.cmds '+trinitydir+'/read_partitions >> {log} ' )  
 
-#TODO this rule	could either be run outside of trinity, manually pasting together the segment runs at the end, or the parallel command could possibly be passed as a --grid_exec command to trinity phase 2. The latter is neater, but will require all of the phase one .ok files to be passed as well. perhaps as simple as zipping EVERYTHINg up after phase 1.	
+
+#phase 2 is executed outside of Trinity by simply running the recursive_trinity.cmds in parallel. 
+#This requires a large number of CPUs, as well as the storage of a very high file count.
+# Running these commands separately on 1000s of CPUs allows us to fully exploit the parallelisation speed up offered at this step, and is essentially required to keep the job under the 48 hour time limit.
+# The phase 1 tarball is unzipped onto the primary node (Node 0), and 48 cores of this node is dedicated to "housekeeping".
+# They are responsible for bouncing down the required input file for each command to /scratch/, and retrieving the output upon command completion to bring it back to Node 0.
+# All other cores are dedicated to running the commands within /scratch/ space.
+# This procedure is necessary because compute cores can only access storage on their own node and on /scratch/.
+# The bounce down and up is coupled with a bit of cleaning by the housekeepers to make sure that the file count does not get too large on scratch.
+# Once all commands are complete, the node directory is tarballed to /scratch/ (precious cargo!) and then the Trinity aggregate commands are run on the outputs.
+# There may be further commands to run once the annotation process is clearer (this is why we tarball the directory).
+# Outputs of this step will be the phase 2 tarball along with the final Trinity.fasta transcriptome file.
+#TODO make separate path/switch that allows the non- parallel/slight parallel version to run if so desired (will require phase 1 tarball to give full trinity directory. (i.e. SLOW)
 rule trinity_assembly_phase_2:
 	input:
 		trinitydir+"phase_1.tar.gz",
