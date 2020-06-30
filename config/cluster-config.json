@@ -42,7 +42,15 @@
     "time": "24:00:00",
     "threads": "16",
     "mem": "1000",
-   "temp": "400", 
+   "temp": " 400" 
+  },
+"trinity_assembly_phase_1_full":
+  {
+    "queue":"hugemem",
+    "time": "24:00:00",
+    "threads": "16",
+    "mem": "1000",
+   "temp": " 400" 
   },
 "trinity_assembly_phase_2":
   {
@@ -50,6 +58,13 @@
     "threads": "1008",
     "mem": "4032",
     "temp": "2100"
+  },
+"trinity_assembly_phase_2_full":
+  {
+    "time": "48:00:00",
+    "threads": "48",
+    "mem": "192",
+    "temp": "400"
   },
 "de_novo_abundance":
   {

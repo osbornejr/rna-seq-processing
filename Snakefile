@@ -47,7 +47,7 @@ rule trinity_normalisation:
 		right=basedir+"normalised-reads/right.norm.fq"
 	
 	log: 	
-		basedir+"logs/trinity/trinity_assembly_phase_1.out"	
+		basedir+"logs/trinity/trinity_assembly_normalisation.out"	
 	run:
                 left=",".join(map(str,input.left))
                 right=",".join(map(str,input.right))
@@ -100,8 +100,8 @@ rule trinity_normalisation:
 #		'mv '+trinitydir+'/read_partitions/Fb_0/CBin_41 '+basedir+' && '   
 #		'mv {params.tempdir}/'+trinitydir+'/Trinity.fasta {params.tempdir}/'+trinitydir+'/Trinity.fasta.gene_trans_map '+basedir+trinitydir+'/ '
 	
-#This rule runs Trinity phase 1 using the storage on a highmemory node in Gadi. This allows unlimited numbers of files to be created  (and could theoretically mean running without any normalisation?). The resulting read partitions are zipped up and re-stored locally, along with the recursive commands required in phase 2. (On other systems this method might not be necessary depending on file count quotas. In any case, the below rule is currently context specific to a PBS/Gadi/NCI framework) TODO remove this reliance?  
 rule trinity_assembly_phase_1:
+#This rule runs Trinity phase 1 using the storage on a highmemory node in Gadi. This allows unlimited numbers of files to be created  (and could theoretically mean running without any normalisation?). The resulting read partitions are zipped up and re-stored locally, along with the recursive commands required in phase 2. (On other systems this method might not be necessary depending on file count quotas. In any case, the below rule is currently context specific to a PBS/Gadi/NCI framework) TODO remove this reliance?  
 	input:
 		left=basedir+"normalised-reads/left.norm.fq",
 		right=basedir+"normalised-reads/right.norm.fq"
@@ -132,6 +132,37 @@ rule trinity_assembly_phase_1:
 		'tar -czf '+basedir+trinitydir+'phase_1.tar.gz '+trinitydir+'recursive_trinity.cmds '+trinitydir+'/read_partitions >> {log} ' )  
 
 
+rule trinity_assembly_phase_1_full:
+#This rule runs Trinity phase 1 using the storage on a highmemory node in Gadi. This allows unlimited numbers of files to be created  (and could theoretically mean running without any normalisation?). The resulting trinity directory is tarballed and required in phase 2 full. (On other systems this method might not be necessary depending on file count quotas. In any case, the below rule is currently context specific to a PBS/Gadi/NCI framework) TODO remove this reliance?  
+	input:
+		left=basedir+"normalised-reads/left.norm.fq",
+		right=basedir+"normalised-reads/right.norm.fq"
+	
+	params:	
+		tempdir="$PBS_JOBFS/"
+
+	output:
+		trinitydir+"phase_1_full.tar.gz"
+	
+	log: 	
+		basedir+"logs/trinity/trinity_assembly_phase_1_full.out"	
+	run:			
+		shell(
+		'cd {params.tempdir} >> {log} && '
+		'Trinity '
+		'--no_distributed_trinity_exec '
+		'--seqType fq '
+		'--left {input.left} '
+		'--right {input.right} '
+		'--CPU 16 '
+		'--max_memory 950G '
+		'--no_normalize_reads '
+		'--output '+trinitydir+'  >> {log} && ' 
+		'sed -i "s~{params.tempdir}'+trinitydir+'~PHASE_2_PREFIX~g" '+trinitydir+'recursive_trinity.cmds >> {log} && '
+		'head '+trinitydir+'recursive_trinity.cmds >> {log} && '
+		'tar -czf '+basedir+trinitydir+'phase_1_full.tar.gz '+trinitydir+' >> {log} ' )  
+
+rule trinity_assembly_phase_2:
 #phase 2 is executed outside of Trinity by simply running the recursive_trinity.cmds in parallel. 
 #This requires a large number of CPUs, as well as the storage of a very high file count.
 # Running these commands separately on 1000s of CPUs allows us to fully exploit the parallelisation speed up offered at this step, and is essentially required to keep the job under the 48 hour time limit.
@@ -144,7 +175,6 @@ rule trinity_assembly_phase_1:
 # There may be further commands to run once the annotation process is clearer (this is why we tarball the directory).
 # Outputs of this step will be the phase 2 tarball along with the final Trinity.fasta transcriptome file.
 #TODO make separate path/switch that allows the non- parallel/slight parallel version to run if so desired (will require phase 1 tarball to give full trinity directory. (i.e. SLOW)
-rule trinity_assembly_phase_2:
 	input:
 		trinitydir+"phase_1.tar.gz",
 		left=basedir+"normalised-reads/left.norm.fq",
@@ -157,14 +187,13 @@ rule trinity_assembly_phase_2:
 		threads_per_node=48
 	
 	output:
-		trinitydir+"phase_2.tar.gz",
-		trinitydir+"Trinity.fasta"
+		trinitydir+"phase_2.tar.gz"
 	log: 	
 		basedir+"logs/trinity/trinity_assembly_phase_2.out"	
 	run: 
 		shell(
+		#unzip phase 1 to housekeeping node and change prefix to suit bouncedown
 		'tar -xzf '+trinitydir+'phase_1.tar.gz -C {params.tempdir} >> {log} && '
-		'sed -i "s~/jobfs/7127524.gadi-pbs/'+trinitydir+'~PHASE_2_PREFIX~g" {params.tempdir}'+trinitydir+'recursive_trinity.cmds >> {log} && '
 		'sed -i "s~PHASE_2_PREFIX~'+trinitydir+'~g" {params.tempdir}'+trinitydir+'recursive_trinity.cmds && '
 		'head {params.tempdir}'+trinitydir+'recursive_trinity.cmds >> {log} && '
 		#write bounce commands to be run on each cmd. The last CPU will always belong to Node 0, where phase 1 should be extracted to. This node is used as a housekeeper to move inputs and outputs between Node 0 and the scratch drive. All other CPUS will be assigned to 			process a specific command from recursive_trinity.cmds. TODO may need more than one housekeeper?
@@ -183,20 +212,44 @@ rule trinity_assembly_phase_2:
 		'tar -cvzf '+basedir+trinitydir+'phase_2.tar.gz '+trinitydir+' >> {log} && '  
 		#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity TODO need more than just fasta file to annotate?
 		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta >> {log} ')
-	##run trinity in grid mode from root of temp drive
-	#	'Trinity '
-	#	"""--grid_exec "parallel -j {params.n_cpus} pbsdsh -n {{%}} -- bash -l -c '{{}}'< " """
-	#	'--seqType fq '
-	#	'--left {input.left} '
-	#	'--right {input.right} '
-	#	'--CPU 16 '
-	#	'--max_memory 10G '
-	#	'--no_normalize_reads '
-	#	'--output '+trinitydir+' >> {log} && '
-#		'tar -cvzf '+basedir+trinitydir+'phase_2.tar.gz '+trinitydir+' >> {log} && '
-#		'cd '+basedir+trinitydir+' >> {log} && '
-#		'tar -xzf phase_2.tar.gz >> {log} && '
-#		'mv '+trinitydir+'Trinity.fasta ./ >> {log} ') 
+
+rule trinity_assembly_phase_2_full:
+	input:
+		trinitydir+"phase_1_full.tar.gz",
+		left=basedir+"normalised-reads/left.norm.fq",
+		right=basedir+"normalised-reads/right.norm.fq"
+	
+	params:
+		tempdir="$PBS_JOBFS/",
+		basedir=basedir,
+		n_cpus="$PBS_NCPUS",
+		threads_per_node=48
+	
+	output:
+		trinitydir+"phase_2_full.tar.gz",
+		trinitydir+"Trinity.fasta"
+	log: 	
+		basedir+"logs/trinity/trinity_assembly_phase_2_full.out"	
+	run: 
+		shell(
+		#unzip phase 1 full to job node and change prefix to suit node
+		'tar -xzf '+trinitydir+'phase_1.tar.gz -C {params.tempdir} >> {log} && '
+		'sed -i "s~PHASE_2_PREFIX~'+trinitydir+'~g" {params.tempdir}'+trinitydir+'recursive_trinity.cmds && '
+		'head {params.tempdir}'+trinitydir+'recursive_trinity.cmds >> {log} && '
+		#run trinity in grid mode from job node
+		'cd {params.tempdir} && '
+		'Trinity '
+		"""--grid_exec "parallel -j {params.n_cpus} pbsdsh -n {{%}} -- bash -l -c '{{}}'< " """
+		'--seqType fq '
+		'--left {input.left} '
+		'--right {input.right} '
+		'--CPU 16 '
+		'--max_memory 10G '
+		'--no_normalize_reads '
+		'--output '+trinitydir+' >> {log} && '
+		#move final transcriptome to base
+		'mv '+trinitydir+'Trinity.fasta '+basedir+trinitydir+' >> {log} && '
+		'tar -cvzf '+basedir+trinitydir+'phase_2_full.tar.gz '+trinitydir+' >> {log}') 
 		
 	
 rule clean:
