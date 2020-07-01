@@ -253,6 +253,7 @@ rule trinity_assembly_phase_2_full:
 		
 	
 rule clean:
+# all in one cleaning of fastq files with fastp. Could alternatively do this with trimmomatic? But need specific adapter sequences etc. TODO double check quality independently after running fastp with fastqc
 	input:
 		r1="raw-reads/{SAMPLE}_read_1.fastq.gz",
 		r2="raw-reads/{SAMPLE}_read_2.fastq.gz"
