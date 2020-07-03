@@ -207,11 +207,28 @@ rule trinity_assembly_phase_2:
 		'rm -rf '+trinitydir+'read_partitions && '
 		#run GNU parallel to distribute and bounce cmds to available nodes. Note that parallel is given one node less than the total (Node 0 will be for housekeeping, as prescribed in trinity_bounce
 		"""cat {params.tempdir}"""+trinitydir+"""recursive_trinity.cmds | parallel --colsep '"' --env trinity_bounce -j $(({params.n_cpus}-{params.threads_per_node})) trinity_bounce {{1}} {{2}} {{3}} {{4}} {{5}} {{2//}} {{%}}  && """
-		#save job directory to zip (very precious)
+		#save job directory to zip (very precious; must be run from job directory)
 		'cd {params.tempdir} && '
-		'tar -cvzf '+basedir+trinitydir+'phase_2.tar.gz '+trinitydir+' >> {log} && '  
+		'tar -cvzf '+basedir+trinitydir+'phase_2.tar.gz '+trinitydir+' >> {log} ')  
+
+rule trinity_assembly_finalise:
+	input:
+		trinitydir+"phase_2.tar.gz"
+	
+	params:
+		tempdir="$PBS_JOBFS/",
+		basedir=basedir
+	
+	output:
+		trinitydir+"Trinity.fasta"
+	log: 	
+		basedir+"logs/trinity/trinity_assembly_finalise.out"	
+	run: 
+		shell(
+		#unzip phase 2 to job node for final collation steps
+		'tar -xzf '+trinitydir+'phase_2.tar.gz -C {params.tempdir} >> {log} && '
 		#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity TODO need more than just fasta file to annotate?
-		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta >> {log} ')
+		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta')
 
 rule trinity_assembly_phase_2_full:
 	input:
@@ -227,7 +244,7 @@ rule trinity_assembly_phase_2_full:
 	
 	output:
 		trinitydir+"phase_2_full.tar.gz",
-		trinitydir+"Trinity.fasta"
+		#trinitydir+"Trinity.fasta"
 	log: 	
 		basedir+"logs/trinity/trinity_assembly_phase_2_full.out"	
 	run: 
