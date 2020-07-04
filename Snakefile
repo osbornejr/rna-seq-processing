@@ -220,7 +220,7 @@ rule trinity_assembly_finalise:
 		basedir=basedir
 	
 	output:
-		trinitydir+"Trinity.fasta"
+		#trinitydir+"Trinity.fasta"
 	log: 	
 		basedir+"logs/trinity/trinity_assembly_finalise.out"	
 	run: 
@@ -244,7 +244,7 @@ rule trinity_assembly_phase_2_full:
 	
 	output:
 		trinitydir+"phase_2_full.tar.gz",
-		#trinitydir+"Trinity.fasta"
+		trinitydir+"Trinity.fasta"
 	log: 	
 		basedir+"logs/trinity/trinity_assembly_phase_2_full.out"	
 	run: 
