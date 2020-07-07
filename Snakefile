@@ -132,35 +132,6 @@ rule trinity_assembly_phase_1:
 		'tar -czf '+basedir+trinitydir+'phase_1.tar.gz '+trinitydir+'recursive_trinity.cmds '+trinitydir+'/read_partitions >> {log} ' )  
 
 
-rule trinity_assembly_phase_1_full:
-#This rule runs Trinity phase 1 using the storage on a highmemory node in Gadi. This allows unlimited numbers of files to be created  (and could theoretically mean running without any normalisation?). The resulting trinity directory is tarballed and required in phase 2 full. (On other systems this method might not be necessary depending on file count quotas. In any case, the below rule is currently context specific to a PBS/Gadi/NCI framework) TODO remove this reliance?  
-	input:
-		left=basedir+"normalised-reads/left.norm.fq",
-		right=basedir+"normalised-reads/right.norm.fq"
-	
-	params:	
-		tempdir="$PBS_JOBFS/"
-
-	output:
-		trinitydir+"phase_1_full.tar.gz"
-	
-	log: 	
-		basedir+"logs/trinity/trinity_assembly_phase_1_full.out"	
-	run:			
-		shell(
-		'cd {params.tempdir} >> {log} && '
-		'Trinity '
-		'--no_distributed_trinity_exec '
-		'--seqType fq '
-		'--left {input.left} '
-		'--right {input.right} '
-		'--CPU 16 '
-		'--max_memory 950G '
-		'--no_normalize_reads '
-		'--output '+trinitydir+'  >> {log} && ' 
-		'sed -i "s~{params.tempdir}'+trinitydir+'~PHASE_2_PREFIX~g" '+trinitydir+'recursive_trinity.cmds >> {log} && '
-		'head '+trinitydir+'recursive_trinity.cmds >> {log} && '
-		'tar -czf '+basedir+trinitydir+'phase_1_full.tar.gz '+trinitydir+' >> {log} ' )  
 
 rule trinity_assembly_phase_2:
 #phase 2 is executed outside of Trinity by simply running the recursive_trinity.cmds in parallel. 
@@ -229,6 +200,36 @@ rule trinity_assembly_finalise:
 		'tar -xzf '+trinitydir+'phase_2.tar.gz -C {params.tempdir} >> {log} && '
 		#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity TODO need more than just fasta file to annotate?
 		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta')
+
+rule trinity_assembly_phase_1_full:
+#This rule runs Trinity phase 1 using the storage on a highmemory node in Gadi. This allows unlimited numbers of files to be created  (and could theoretically mean running without any normalisation?). The resulting trinity directory is tarballed and required in phase 2 full. (On other systems this method might not be necessary depending on file count quotas. In any case, the below rule is currently context specific to a PBS/Gadi/NCI framework) TODO remove this reliance?  
+	input:
+		left=basedir+"normalised-reads/left.norm.fq",
+		right=basedir+"normalised-reads/right.norm.fq"
+	
+	params:	
+		tempdir="$PBS_JOBFS/"
+
+	output:
+		trinitydir+"phase_1_full.tar.gz"
+	
+	log: 	
+		basedir+"logs/trinity/trinity_assembly_phase_1_full.out"	
+	run:			
+		shell(
+		'cd {params.tempdir} >> {log} && '
+		'Trinity '
+		'--no_distributed_trinity_exec '
+		'--seqType fq '
+		'--left {input.left} '
+		'--right {input.right} '
+		'--CPU 16 '
+		'--max_memory 950G '
+		'--no_normalize_reads '
+		'--output '+trinitydir+'  >> {log} && ' 
+		'sed -i "s~{params.tempdir}'+trinitydir+'~PHASE_2_PREFIX~g" '+trinitydir+'recursive_trinity.cmds >> {log} && '
+		'head '+trinitydir+'recursive_trinity.cmds >> {log} && '
+		'tar -czf '+basedir+trinitydir+'phase_1_full.tar.gz '+trinitydir+' >> {log} ' )  
 
 rule trinity_assembly_phase_2_full:
 	input:
