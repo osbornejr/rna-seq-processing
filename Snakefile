@@ -252,7 +252,7 @@ rule trinity_assembly_phase_2_full:
 		shell(
 		#unzip phase 1 full to job node and change prefix to suit node
 		'tar -xzf '+trinitydir+'phase_1_full.tar.gz -C {params.tempdir} >> {log} && '
-		'sed -i "s~PHASE_2_PREFIX~{params.tempdir}+'+trinitydir+'~g" {params.tempdir}'+trinitydir+'recursive_trinity.cmds && '
+		'sed -i "s~PHASE_2_PREFIX~{params.tempdir}'+trinitydir+'~g" {params.tempdir}'+trinitydir+'recursive_trinity.cmds && '
 		'head {params.tempdir}'+trinitydir+'recursive_trinity.cmds >> {log} && '
 		#run trinity in grid mode from job node
 		'cd {params.tempdir} && '
