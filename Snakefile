@@ -257,7 +257,7 @@ rule trinity_assembly_phase_2_full:
 		#run trinity in grid mode from job node
 		'cd {params.tempdir} && '
 		'Trinity '
-		"""--grid_exec "parallel -j {params.n_cpus} pbsdsh -n {{%}} -- bash -l -c '{{}}'< " """
+		#"""--grid_exec "parallel -j {params.n_cpus} pbsdsh -n {{%}} -- bash -l -c '{{}}'< " """
 		'--seqType fq '
 		'--left {input.left} '
 		'--right {input.right} '
