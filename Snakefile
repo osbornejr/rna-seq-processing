@@ -287,7 +287,9 @@ rule trinity_abundance_reference:
 	input:
 		trinitydir+'Trinity.fasta'
 	output:
-		'rsem-reference-test'		
+		'rsem-reference-test'
+	log:
+		basedir+'logs/trinity/trinity_abundance_reference.out'		
 	shell:
 		'mkdir -p reference-index/trinity && ' 
 		'cd reference-index/trinity && '
@@ -296,7 +298,7 @@ rule trinity_abundance_reference:
 		'--est_method RSEM '
 		'--aln_method bowtie '
 		'--trinity_mode '
-		'--prep_reference '
+		'--prep_reference >> {log} '
 
 	
 rule trinity_abundance:
