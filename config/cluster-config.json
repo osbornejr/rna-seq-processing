@@ -66,7 +66,13 @@
     "mem": "192",
     "temp": "400"
   },
-"de_novo_abundance":
+"trinity_abundance_reference":
+  {
+    "time": "01:00:00",
+    "threads": "16",
+    "mem": "16"
+  },
+"trinity_abundance":
   {
     "time": "03:00:00",
     "threads": "16",

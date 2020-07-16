@@ -37,6 +37,7 @@ rule all:
 		basedir+"normalised-reads/left.norm.fq",
 		basedir+"normalised-reads/right.norm.fq",
 		trinitydir+"Trinity.fasta",
+		"rsem-reference-test"
 #		expand('aligned-reads/{SAMPLE}_pass_1/SJ.out.tab',SAMPLE=SAMPLES),
 #		expand('splice-junctions/{SAMPLE}_pass_1_SJ.filtered.tab',SAMPLE=SAMPLES),
 #		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.sortedByCoord.out.bam',SAMPLE=SAMPLES),
@@ -45,7 +46,7 @@ rule all:
 #		expand('reference-index/{REF_GENOME}/{REF_GENOME}.ti',REF_GENOME=REF_GENOME),
 #		expand('reference-index/{REF_GENOME}/{REF_GENOME}.seq',REF_GENOME=REF_GENOME),
 #		expand('reference-index/{REF_GENOME}/{REF_GENOME}.chrlist',REF_GENOME=REF_GENOME),
-		'reference-index/trinity/SAindex'
+#		'reference-index/trinity/SAindex'
 #		expand('transcript-counts/{SAMPLE}_rsem.isoforms.results',SAMPLE=SAMPLES),
 #		expand('transcript-counts/{SAMPLE}_rsem.genes.results',SAMPLE=SAMPLES),		
 		
@@ -194,7 +195,7 @@ rule trinity_assembly_phase_2:
 		'cd {params.tempdir} && '
 		'tar -cvzf '+basedir+trinitydir+'phase_2.tar.gz '+trinitydir+' >> {log} ')  
 
-rule trinity_assembly_finalise:
+rule trinity_assembly_finali	se:
 	input:
 		trinitydir+"phase_2.tar.gz"
 	
@@ -282,23 +283,41 @@ rule trinity_assembly_phase_2_full:
 		'mv '+trinitydir+'Trinity.fasta '+basedir+trinitydir+' >> {log} && '
 		'tar -cvzf '+basedir+trinitydir+'phase_2_full.tar.gz '+trinitydir+' >> {log}') 
 
+rule trinity_abundance_reference:
+	input:
+		trinitydir+'Trinity.fasta'
+	output:
+		'rsem-reference-test'		
+	shell:
+		'mkdir -p reference-index/trinity && ' 
+		'cd reference-index/trinity && '
+		'$TRINITY_HOME/util/align_and_estimate_abundance.pl '
+		'--transcripts ../../'+trinitydir+'Trinity.fasta '
+		'--est_method RSEM '
+		'--aln_method bowtie '
+		'--trinity_mode '
+		'--prep_reference '
+
+	
 rule trinity_abundance:
 	input:
 		trinitydir+'Trinity.fasta'
-	
-	output: 'transcript-counts/{SAMPLE}_rsem.isoforms.results',
+
+	output: 
+		'transcript-counts/{SAMPLE}_rsem.isoforms.results',
 		'transcript-counts/{SAMPLE}_rsem.genes.results'
 
-	'$TRINITY_HOME/utils/align_and_estimate_abundance.pl '
-	'-transcripts Trinity.fasta '
-	'--seqType fq '
-	'--left reads_1.fq '
-	'--right reads_2.fq '
-	'--est_method RSEM '
-	'--aln_method bowtie ' 
-	'--trinity_mode '
-	'--prep_reference '
-	'--output_dir rsem_outdir '	
+	shell:	
+		'$TRINITY_HOME/utils/align_and_estimate_abundance.pl '
+		'-transcripts Trinity.fasta '
+		'--seqType fq '
+		'--left reads_1.fq '
+		'--right reads_2.fq '
+		'--est_method RSEM '
+		'--aln_method bowtie ' 
+		'--trinity_mode '
+		'--prep_reference '
+		'--output_dir rsem_outdir '	
 	
 rule clean:
 # all in one cleaning of fastq files with fastp. Could alternatively do this with trimmomatic? But need specific adapter sequences etc. TODO double check quality independently after running fastp with fastqc
