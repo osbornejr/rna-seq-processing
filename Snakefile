@@ -2,7 +2,7 @@ shell.executable
 ("/bin/bash")
 SAMPLES=expand("{TYPE}/{TYPE}_sample_{N}/{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range(13)][1:])
 IDS=expand("{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range(13)][1:])
-REF_GENOME="Kabuli_UWA-v2.6.3"
+REF_GENOME="trinity"
 GENE_CODE="Ca"
 
 trinitydir="trinity-transcriptome-assembly/"
@@ -36,7 +36,18 @@ rule all:
 		expand("reports/{SAMPLE}_fastp.{EXT}",SAMPLE=SAMPLES,EXT=["html","json"]),
 		basedir+"normalised-reads/left.norm.fq",
 		basedir+"normalised-reads/right.norm.fq",
-		trinitydir+"Trinity.fasta"
+		trinitydir+"Trinity.fasta",
+#		expand('aligned-reads/{SAMPLE}_pass_1/SJ.out.tab',SAMPLE=SAMPLES),
+#		expand('splice-junctions/{SAMPLE}_pass_1_SJ.filtered.tab',SAMPLE=SAMPLES),
+#		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.sortedByCoord.out.bam',SAMPLE=SAMPLES),
+#		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam',SAMPLE=SAMPLES),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.grp',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.ti',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.seq',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.chrlist',REF_GENOME=REF_GENOME),
+		'reference-index/trinity/SAindex'
+#		expand('transcript-counts/{SAMPLE}_rsem.isoforms.results',SAMPLE=SAMPLES),
+#		expand('transcript-counts/{SAMPLE}_rsem.genes.results',SAMPLE=SAMPLES),		
 		
 rule trinity_normalisation:
 	input: 
@@ -146,6 +157,7 @@ rule trinity_assembly_phase_2:
 # There may be further commands to run once the annotation process is clearer (this is why we tarball the directory).
 # Outputs of this step will be the phase 2 tarball along with the final Trinity.fasta transcriptome file.
 #TODO make separate path/switch that allows the non- parallel/slight parallel version to run if so desired (will require phase 1 tarball to give full trinity directory. (i.e. SLOW)
+#NOTE 16/7/20: not functioning properly at the moment, and will require a switch over to using MPI parallelisation. Not pressing in any case, because the slow full version is passing atm. The problem (at all levels) was that pbsdsh based parallelisation was very inefficient and prone to errors. 
 	input:
 		trinitydir+"phase_1.tar.gz",
 		left=basedir+"normalised-reads/left.norm.fq",
@@ -199,7 +211,7 @@ rule trinity_assembly_finalise:
 		#unzip phase 2 to job node for final collation steps
 		'tar -xzf '+trinitydir+'phase_2.tar.gz -C {params.tempdir} >> {log} && '
 		#aggregate found reads to one transcriptome TODO remove reference to specific version of Trinity TODO need more than just fasta file to annotate?
-		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $CONDA_PREFIX/opt/trinity-2.9.1/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta')
+		'find {params.tempdir}'+trinitydir+'read_partitions/ -name "*Trinity.fasta" | $TRINITY_HOME/util/support_scripts/partitioned_trinity_aggregator.pl --token_prefix TRINITY_DN --output_prefix Trinity >'+trinitydir+'Trinity.fasta')
 
 rule trinity_assembly_phase_1_full:
 #This rule runs Trinity phase 1 using the storage on a highmemory node in Gadi. This allows unlimited numbers of files to be created  (and could theoretically mean running without any normalisation?). The resulting trinity directory is tarballed and required in phase 2 full. (On other systems this method might not be necessary depending on file count quotas. In any case, the below rule is currently context specific to a PBS/Gadi/NCI framework) TODO remove this reliance?  
@@ -232,6 +244,7 @@ rule trinity_assembly_phase_1_full:
 		'tar -czf '+basedir+trinitydir+'phase_1_full.tar.gz '+trinitydir+' >> {log} ' )  
 
 rule trinity_assembly_phase_2_full:
+#Parallelisation within the node could speed up things if we use MPI parallelisation. Not pressing atm. 
 	input:
 		trinitydir+"phase_1_full.tar.gz",
 		left=basedir+"normalised-reads/left.norm.fq",
@@ -268,7 +281,24 @@ rule trinity_assembly_phase_2_full:
 		#move final transcriptome to base
 		'mv '+trinitydir+'Trinity.fasta '+basedir+trinitydir+' >> {log} && '
 		'tar -cvzf '+basedir+trinitydir+'phase_2_full.tar.gz '+trinitydir+' >> {log}') 
-		
+
+rule trinity_abundance:
+	input:
+		trinitydir+'Trinity.fasta'
+	
+	output: 'transcript-counts/{SAMPLE}_rsem.isoforms.results',
+		'transcript-counts/{SAMPLE}_rsem.genes.results'
+
+	'$TRINITY_HOME/utils/align_and_estimate_abundance.pl '
+	'-transcripts Trinity.fasta '
+	'--seqType fq '
+	'--left reads_1.fq '
+	'--right reads_2.fq '
+	'--est_method RSEM '
+	'--aln_method bowtie ' 
+	'--trinity_mode '
+	'--prep_reference '
+	'--output_dir rsem_outdir '	
 	
 rule clean:
 # all in one cleaning of fastq files with fastp. Could alternatively do this with trimmomatic? But need specific adapter sequences etc. TODO double check quality independently after running fastp with fastqc
@@ -340,6 +370,24 @@ rule rsem_reference:
                 'set -u && '
                 'rsem-prepare-reference {input.fasta} --star -p {threads} --gtf {input.gtf} {params.outdir}'
 
+rule trinity_rsem_reference:
+        input:
+                fasta = trinitydir+'Trinity.fasta'
+
+        params:
+                outdir = 'reference-index/trinity/trinity'
+
+        output:
+                grp = 'reference-index/trinity/trinity.grp',
+                ti = 'reference-index/trinity/trinity.ti',
+                seq = 'reference-index/trinity/trinity.seq',
+                chrlist = 'reference-index/trinity/trinity.chrlist',
+                SAindex = 'reference-index/trinity/SAindex',
+
+        #conda: "environment.yml"
+
+        shell:
+                'rsem-prepare-reference {input.fasta} --star -p {threads} {params.outdir}'
 rule align:
 	input:
 		r1 = 'clean-reads/{SAMPLE}_read_1_fastp.fastq.gz',
@@ -449,8 +497,8 @@ rule align_pass_2:
 
 
 rule rsem:
-	input:
-		bam = 'aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam',
+	input: 
+	 	bam = 'aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam',
 		ref = expand('reference-index/{REF_GENOME}/{REF_GENOME}.{ext}',REF_GENOME=REF_GENOME,ext=['grp','ti','seq','chrlist'])
 
 	params: 
