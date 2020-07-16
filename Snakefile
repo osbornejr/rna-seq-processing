@@ -291,10 +291,8 @@ rule trinity_abundance_reference:
 	log:
 		basedir+'logs/trinity/trinity_abundance_reference.out'		
 	shell:
-		'mkdir -p reference-index/trinity && ' 
-		'cd reference-index/trinity && '
 		'$TRINITY_HOME/util/align_and_estimate_abundance.pl '
-		'--transcripts ../../'+trinitydir+'Trinity.fasta '
+		'--transcripts '+trinitydir+'Trinity.fasta '
 		'--est_method RSEM '
 		'--aln_method bowtie '
 		'--trinity_mode '
