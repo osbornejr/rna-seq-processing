@@ -296,6 +296,7 @@ rule trinity_abundance_reference:
 		'--est_method RSEM '
 		'--aln_method bowtie '
 		'--trinity_mode '
+		'--thread_count {threads} '
 		'--prep_reference >> {log} '
 
 	
