@@ -37,18 +37,9 @@ rule all:
 		basedir+"normalised-reads/left.norm.fq",
 		basedir+"normalised-reads/right.norm.fq",
 		trinitydir+"Trinity.fasta",
-		"rsem-reference-test"
-#		expand('aligned-reads/{SAMPLE}_pass_1/SJ.out.tab',SAMPLE=SAMPLES),
-#		expand('splice-junctions/{SAMPLE}_pass_1_SJ.filtered.tab',SAMPLE=SAMPLES),
-#		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.sortedByCoord.out.bam',SAMPLE=SAMPLES),
-#		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam',SAMPLE=SAMPLES),
-#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.grp',REF_GENOME=REF_GENOME),
-#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.ti',REF_GENOME=REF_GENOME),
-#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.seq',REF_GENOME=REF_GENOME),
-#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.chrlist',REF_GENOME=REF_GENOME),
-#		'reference-index/trinity/SAindex'
-#		expand('transcript-counts/{SAMPLE}_rsem.isoforms.results',SAMPLE=SAMPLES),
-#		expand('transcript-counts/{SAMPLE}_rsem.genes.results',SAMPLE=SAMPLES),		
+		trinitydir+'Trinity.fasta.RSEM.idx.fa',
+		expand('transcript-counts/{SAMPLE}_rsem.isoforms.results',SAMPLE=SAMPLES),
+		expand('transcript-counts/{SAMPLE}_rsem.genes.results',SAMPLE=SAMPLES)		
 		
 rule trinity_normalisation:
 	input: 
@@ -195,7 +186,7 @@ rule trinity_assembly_phase_2:
 		'cd {params.tempdir} && '
 		'tar -cvzf '+basedir+trinitydir+'phase_2.tar.gz '+trinitydir+' >> {log} ')  
 
-rule trinity_assembly_finali	se:
+rule trinity_assembly_finalise:
 	input:
 		trinitydir+"phase_2.tar.gz"
 	
@@ -287,7 +278,7 @@ rule trinity_abundance_reference:
 	input:
 		trinitydir+'Trinity.fasta'
 	output:
-		'rsem-reference-test'
+		trinitydir+'Trinity.fasta.RSEM.idx.fa'
 	log:
 		basedir+'logs/trinity/trinity_abundance_reference.out'		
 	shell:
@@ -302,7 +293,10 @@ rule trinity_abundance_reference:
 	
 rule trinity_abundance:
 	input:
-		trinitydir+'Trinity.fasta'
+		trinitydir+'Trinity.fasta',
+		trinitydir+'Trinity.fasta.RSEM.idx.fa',
+		r1 = 'clean-reads/{SAMPLE}_read_1_fastp.fastq.gz',
+		r2 = 'clean-reads/{SAMPLE}_read_2_fastp.fastq.gz'
 
 	output: 
 		'transcript-counts/{SAMPLE}_rsem.isoforms.results',
@@ -310,15 +304,15 @@ rule trinity_abundance:
 
 	shell:	
 		'$TRINITY_HOME/utils/align_and_estimate_abundance.pl '
-		'-transcripts Trinity.fasta '
+		'--transcripts '+trinitydir+'Trinity.fasta '
 		'--seqType fq '
-		'--left reads_1.fq '
-		'--right reads_2.fq '
+		'--left {input.r1} '
+		'--right {input.r2} '
 		'--est_method RSEM '
 		'--aln_method bowtie ' 
 		'--trinity_mode '
-		'--prep_reference '
-		'--output_dir rsem_outdir '	
+		'--thread_count {threads} '
+		'--output_dir transcript-counts '	
 	
 rule clean:
 # all in one cleaning of fastq files with fastp. Could alternatively do this with trimmomatic? But need specific adapter sequences etc. TODO double check quality independently after running fastp with fastqc
@@ -516,26 +510,26 @@ rule align_pass_2:
 		'mv {params.tempdir}/* {params.outdir}' 
 
 
-rule rsem:
-	input: 
-	 	bam = 'aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam',
-		ref = expand('reference-index/{REF_GENOME}/{REF_GENOME}.{ext}',REF_GENOME=REF_GENOME,ext=['grp','ti','seq','chrlist'])
-
-	params: 
-		indir  = expand('reference-index/{REF_GENOME}/{REF_GENOME}',REF_GENOME=REF_GENOME), 
-		outdir = 'transcript-counts/{SAMPLE}_rsem'
-
-	output: 'transcript-counts/{SAMPLE}_rsem.isoforms.results',
-		'transcript-counts/{SAMPLE}_rsem.genes.results'
-	#log:	'logs/{SAMPLE}_rsem.log'
-	#conda: "environment.yml"
-
-	shell:
-		'set +u && '
-		'eval "$(conda shell.bash hook)" && '
-		'conda activate rna-seq && '
-		'set -u && '
-		'rsem-calculate-expression --bam --paired-end -p 1 {input.bam} {params.indir} {params.outdir}'
+#rule rsem:
+#	input: 
+#	 	bam = 'aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam',
+#		ref = expand('reference-index/{REF_GENOME}/{REF_GENOME}.{ext}',REF_GENOME=REF_GENOME,ext=['grp','ti','seq','chrlist'])
+#
+#	params: 
+#		indir  = expand('reference-index/{REF_GENOME}/{REF_GENOME}',REF_GENOME=REF_GENOME), 
+#		outdir = 'transcript-counts/{SAMPLE}_rsem'
+#
+#	output: 'transcript-counts/{SAMPLE}_rsem.isoforms.results',
+#		'transcript-counts/{SAMPLE}_rsem.genes.results'
+#	#log:	'logs/{SAMPLE}_rsem.log'
+#	#conda: "environment.yml"
+#
+#	shell:
+#		'set +u && '
+#		'eval "$(conda shell.bash hook)" && '
+#		'conda activate rna-seq && '
+#		'set -u && '
+#		'rsem-calculate-expression --bam --paired-end -p 1 {input.bam} {params.indir} {params.outdir}'
 		
 
 #Use htseq rule to quantify GENE counts.  

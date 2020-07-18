@@ -68,13 +68,13 @@
   },
 "trinity_abundance_reference":
   {
-    "time": "01:00:00",
+    "time": "04:00:00",
     "threads": "16",
     "mem": "16"
   },
 "trinity_abundance":
   {
-    "time": "03:00:00",
+    "time": "08:00:00",
     "threads": "16",
     "mem": "16"
   },
