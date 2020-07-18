@@ -303,7 +303,7 @@ rule trinity_abundance:
 		'transcript-counts/{SAMPLE}_rsem.genes.results'
 
 	shell:	
-		'$TRINITY_HOME/utils/align_and_estimate_abundance.pl '
+		'$TRINITY_HOME/util/align_and_estimate_abundance.pl '
 		'--transcripts '+trinitydir+'Trinity.fasta '
 		'--seqType fq '
 		'--left {input.r1} '
