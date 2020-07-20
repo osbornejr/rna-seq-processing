@@ -1,6 +1,7 @@
 shell.executable
 ("/bin/bash")
 SAMPLES=expand("{TYPE}/{TYPE}_sample_{N}/{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range(13)][1:])
+SAMPLEDIRS=expand("{TYPE}/{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range(13)][1:])
 IDS=expand("{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range(13)][1:])
 REF_GENOME="trinity"
 GENE_CODE="Ca"
@@ -301,6 +302,12 @@ rule trinity_abundance:
 	output: 
 		'transcript-counts/{SAMPLE}_rsem.isoforms.results',
 		'transcript-counts/{SAMPLE}_rsem.genes.results'
+	
+	params:
+		outdir = 'transcript-counts/{SAMPLE}'
+	
+	log:
+		basedir+'logs/{SAMPLE}_trinity_abundance.out'
 
 	shell:	
 		'$TRINITY_HOME/util/align_and_estimate_abundance.pl '
@@ -312,7 +319,7 @@ rule trinity_abundance:
 		'--aln_method bowtie ' 
 		'--trinity_mode '
 		'--thread_count {threads} '
-		'--output_dir transcript-counts '	
+		'--output_dir {params.outdir} '	
 	
 rule clean:
 # all in one cleaning of fastq files with fastp. Could alternatively do this with trimmomatic? But need specific adapter sequences etc. TODO double check quality independently after running fastp with fastqc
