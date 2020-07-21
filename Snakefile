@@ -39,8 +39,8 @@ rule all:
 		basedir+"normalised-reads/right.norm.fq",
 		trinitydir+"Trinity.fasta",
 		trinitydir+'Trinity.fasta.RSEM.idx.fa',
-		expand('transcript-counts/{SAMPLE}_rsem.isoforms.results',SAMPLE=SAMPLES),
-		expand('transcript-counts/{SAMPLE}_rsem.genes.results',SAMPLE=SAMPLES)		
+		expand('transcript-counts/{SAMPLE}_RSEM.isoforms.results',SAMPLE=SAMPLES),
+		expand('transcript-counts/{SAMPLE}_RSEM.genes.results',SAMPLE=SAMPLES)		
 		
 rule trinity_normalisation:
 	input: 
@@ -300,8 +300,8 @@ rule trinity_abundance:
 		r2 = 'clean-reads/{SAMPLE}_read_2_fastp.fastq.gz'
 
 	output: 
-		'transcript-counts/{SAMPLE}_rsem.isoforms.results',
-		'transcript-counts/{SAMPLE}_rsem.genes.results'
+		'transcript-counts/{SAMPLE}_RSEM.isoforms.results',
+		'transcript-counts/{SAMPLE}_RSEM.genes.results'
 	
 	params:
 		outdir = 'transcript-counts/{SAMPLE}'
