@@ -319,7 +319,10 @@ rule trinity_abundance:
 		'--aln_method bowtie ' 
 		'--trinity_mode '
 		'--thread_count {threads} '
-		'--output_dir {params.outdir} '	
+		'--output_dir {params.outdir} >> {log} && '
+		'for file in {params.outdir}/*; do mv $file {params.outdir}_$(basename $file); done && '
+		'rm -r {params.outdir} '
+	
 	
 rule clean:
 # all in one cleaning of fastq files with fastp. Could alternatively do this with trimmomatic? But need specific adapter sequences etc. TODO double check quality independently after running fastp with fastqc
