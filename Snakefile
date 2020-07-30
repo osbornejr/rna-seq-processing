@@ -20,8 +20,7 @@ rule all:
 		basedir+"normalised-reads/right.norm.fq",
 		trinitydir+"Trinity.fasta",
 		trinitydir+'Trinity.fasta.RSEM.idx.fa',
-		expand('transcript-counts/{SAMPLE}_RSEM.isoforms.results',SAMPLE=SAMPLES),
-		expand('transcript-counts/{SAMPLE}_RSEM.genes.results',SAMPLE=SAMPLES)		
+		expand('output-data/{X}/{SAMPLE}_RSEM.{X}.results',SAMPLE=IDS,X=["isoforms","genes"])
 		
 rule trinity_normalisation:
 	input: 
@@ -302,7 +301,11 @@ rule trinity_abundance:
 		'--thread_count {threads} '
 		'--output_dir {params.outdir} >> {log} && '
 		'for file in {params.outdir}/*; do mv $file {params.outdir}_$(basename $file); done && '
-		'rm -r {params.outdir} '
+		'rm -r {params.outdir} && '
+		'mkdir -p output-data/genes && '
+		'mkdir -p output-data/isoforms && '
+		'find ./transcript-counts/ -name "*.genes.results" -exec cp {} output-data/genes/ \; && '
+		'find ./transcript-counts/ -name "*.isoforms.results" -exec cp {} output-data/isoforms/ \; && '
 	
 	
 rule clean:
