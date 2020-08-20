@@ -5,13 +5,10 @@ channels:
   - defaults
 dependencies:
   - fastp
-  - star
-  - cufflinks
   - snakemake=5.10
-  - cookiecutter
-  - htseq
   - samtools
   - rsem
   - bowtie
   - trinity
-  - parallel  
+  - detonate
+  - blast

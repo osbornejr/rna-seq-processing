@@ -11,50 +11,27 @@ basedir=workflow.basedir+'/'
 #TODO put long shell commands into scripts and source?
 #TODO split Snakefile into two separate sub workflows, de novo and reference assembly 
 #Transcriptome assembly using reference genome
-rule all:
-	input:
-		expand("clean-reads/{SAMPLE}_read_{N}_fastp.fastq.gz",SAMPLE=SAMPLES,N=["1","2"]),
-		expand("reports/{SAMPLE}_fastp.{EXT}",SAMPLE=SAMPLES,EXT=["html","json"]),
-		#expand('reference-index/{REF_GENOME}_star',REF_GENOME=REF_GENOME),
-		expand('aligned-reads/{SAMPLE}_pass_1/SJ.out.tab',SAMPLE=SAMPLES),
-		expand('splice-junctions/{SAMPLE}_pass_1_SJ.filtered.tab',SAMPLE=SAMPLES),
-		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.sortedByCoord.out.bam',SAMPLE=SAMPLES),
-		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam',SAMPLE=SAMPLES),
-		expand('reference-index/{REF_GENOME}/{REF_GENOME}.grp',REF_GENOME=REF_GENOME),
-		expand('reference-index/{REF_GENOME}/{REF_GENOME}.ti',REF_GENOME=REF_GENOME),
-		expand('reference-index/{REF_GENOME}/{REF_GENOME}.seq',REF_GENOME=REF_GENOME),
-		expand('reference-index/{REF_GENOME}/{REF_GENOME}.chrlist',REF_GENOME=REF_GENOME),
-		expand('reference-index/{REF_GENOME}/SAindex',REF_GENOME=REF_GENOME),
-		expand('transcript-counts/{SAMPLE}_rsem.isoforms.results',SAMPLE=SAMPLES),
-		expand('transcript-counts/{SAMPLE}_rsem.genes.results',SAMPLE=SAMPLES),		
-		#expand('gene-counts/{SAMPLE}_HTSeq_union_gff3_no_gene_ID.log',SAMPLE=SAMPLES),
-		#expand('gene-counts/{SAMPLE}_HTSeq.csv',SAMPLE=SAMPLES)
+#rule all:
+#	input:
+#		expand("clean-reads/{SAMPLE}_read_{N}_fastp.fastq.gz",SAMPLE=SAMPLES,N=["1","2"]),
+#		expand("reports/{SAMPLE}_fastp.{EXT}",SAMPLE=SAMPLES,EXT=["html","json"]),
+#		#expand('reference-index/{REF_GENOME}_star',REF_GENOME=REF_GENOME),
+#		expand('aligned-reads/{SAMPLE}_pass_1/SJ.out.tab',SAMPLE=SAMPLES),
+#		expand('splice-junctions/{SAMPLE}_pass_1_SJ.filtered.tab',SAMPLE=SAMPLES),
+#		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.sortedByCoord.out.bam',SAMPLE=SAMPLES),
+#		expand('aligned-reads/{SAMPLE}_pass_2/Aligned.toTranscriptome.out.bam',SAMPLE=SAMPLES),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.grp',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.ti',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.seq',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/{REF_GENOME}.chrlist',REF_GENOME=REF_GENOME),
+#		expand('reference-index/{REF_GENOME}/SAindex',REF_GENOME=REF_GENOME),
+#		expand('transcript-counts/{SAMPLE}_rsem.isoforms.results',SAMPLE=SAMPLES),
+#		expand('transcript-counts/{SAMPLE}_rsem.genes.results',SAMPLE=SAMPLES),		
+#		#expand('gene-counts/{SAMPLE}_HTSeq_union_gff3_no_gene_ID.log',SAMPLE=SAMPLES),
+#		#expand('gene-counts/{SAMPLE}_HTSeq.csv',SAMPLE=SAMPLES)
 
 	
 	
-rule clean:
-# all in one cleaning of fastq files with fastp. Could alternatively do this with trimmomatic? But need specific adapter sequences etc. TODO double check quality independently after running fastp with fastqc
-	input:
-		r1="raw-reads/{SAMPLE}_read_1.fastq.gz",
-		r2="raw-reads/{SAMPLE}_read_2.fastq.gz"
-	output:
-		r1=temp("clean-reads/{SAMPLE}_read_1_fastp.fastq.gz"),
-		r2=temp("clean-reads/{SAMPLE}_read_2_fastp.fastq.gz"),
-		html="reports/{SAMPLE}_fastp.html",
-		json="reports/{SAMPLE}_fastp.json"
-		#other fastp outputs?
-		# threads?
-	#conda: "environment.yml"
-	shell:
-		'set +u && '
-		'eval "$(conda shell.bash hook)" && '
-		'conda activate rna-seq && '
-		'set -u && '
-		'fastp '
-		'-i {input.r1} -I {input.r2} '
-		'-o {output.r1} -O {output.r2} '
-		'-h {output.html} -j {output.json} '
-		'-w {threads} '
 #This sets up the reference geneome that STAR will align to. Only needs to be done once for all subsequent STAR alignment jobs 
 #rule star_reference:
 #	input:
