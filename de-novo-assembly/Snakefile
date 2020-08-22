@@ -1,31 +1,13 @@
 shell.executable
 ("/bin/bash")
-SAMPLES=expand("{TYPE}/{TYPE}_sample_{N}/{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range(13)][1:])
-SAMPLEDIRS=expand("{TYPE}/{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range(13)][1:])
-IDS=expand("{TYPE}_sample_{N}",TYPE=["polyA+","polyA-"],N=[str(n) for n in range(13)][1:])
-REF_GENOME="trinity"
-GENE_CODE="Ca"
 
 trinitydir="trinity-transcriptome-assembly/"
-basedir=workflow.basedir+'/'
-#TODO put long shell commands into scripts and source?
-#TODO split Snakefile into two separate sub workflows, de novo and reference assembly 
 
-#De novo transcriptome assembly
-#rule all:
-#	input:					
-#		expand("clean-reads/{SAMPLE}_read_{N}_fastp.fastq.gz",SAMPLE=SAMPLES,N=["1","2"]),
-#		expand("reports/{SAMPLE}_fastp.{EXT}",SAMPLE=SAMPLES,EXT=["html","json"]),
-#		basedir+"normalised-reads/left.norm.fq",
-#		basedir+"normalised-reads/right.norm.fq",
-#		trinitydir+"Trinity.fasta",
-#		trinitydir+'Trinity.fasta.RSEM.idx.fa',
-#		expand('output-data/{X}/{SAMPLE}_RSEM.{X}.results',SAMPLE=IDS,X=["isoforms","genes"])
 		
 rule trinity_normalisation:
 	input: 
-		left=expand(basedir+"clean-reads/{SAMPLE}_read_1_fastp.fastq.gz",SAMPLE=SAMPLES),
-                right=expand(basedir+"clean-reads/{SAMPLE}_read_2_fastp.fastq.gz",SAMPLE=SAMPLES)
+		left=basedir+"clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz",
+                right=basedir+"clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz"
 	output: 
 		left=basedir+"normalised-reads/left.norm.fq",
 		right=basedir+"normalised-reads/right.norm.fq"
@@ -276,13 +258,11 @@ rule trinity_abundance:
 	input:
 		trinitydir+'Trinity.fasta',
 		trinitydir+'Trinity.fasta.RSEM.idx.fa',
-		r1 = 'clean-reads/{SAMPLE}_read_1_fastp.fastq.gz',
-		r2 = 'clean-reads/{SAMPLE}_read_2_fastp.fastq.gz'
+		r1 = 'clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz',
+		r2 = 'clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz'
 
 	output: 
-		'output-data/{SAMPLE}_RSEM.isoforms.results',
-		'output-data/{SAMPLE}_RSEM.genes.results'
-	
+		'output-data/{read_type}/{sample}_RSEM.{read_type}.results'
 	params:
 		outdir = 'transcript-counts/{SAMPLE}'
 	

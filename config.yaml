@@ -1,0 +1,26 @@
+path_to_files: /g/data3/ra94/raw-reads
+samples:
+       - polyA_minus_sample_1
+       - polyA_minus_sample_2
+       - polyA_minus_sample_3
+       - polyA_minus_sample_4
+       - polyA_minus_sample_5
+       - polyA_minus_sample_6
+       - polyA_minus_sample_7
+       - polyA_minus_sample_8
+       - polyA_minus_sample_9
+       - polyA_minus_sample_10
+       - polyA_minus_sample_11
+       - polyA_minus_sample_12
+       - polyA_plus_sample_1
+       - polyA_plus_sample_2
+       - polyA_plus_sample_3
+       - polyA_plus_sample_4
+       - polyA_plus_sample_5
+       - polyA_plus_sample_6
+       - polyA_plus_sample_7
+       - polyA_plus_sample_8
+       - polyA_plus_sample_9
+       - polyA_plus_sample_10
+       - polyA_plus_sample_11
+       - polyA_plus_sample_12
