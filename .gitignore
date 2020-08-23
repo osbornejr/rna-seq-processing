@@ -17,6 +17,7 @@ reference-index
 splice-junctions
 normalised-reads
 trinity-transcriptome-assembly
+results
 test*
 *.e*
 *.o*

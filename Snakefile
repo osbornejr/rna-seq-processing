@@ -3,6 +3,7 @@ shell.executable
 
 configfile: "config.yaml" 
 basedir=workflow.basedir+'/'
+workdir:"results/"+config["work_dir"]
 #TODO put long shell commands into scripts and source?
 
 wildcard_constraints: 
