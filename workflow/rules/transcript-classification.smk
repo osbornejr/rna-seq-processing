@@ -1,7 +1,7 @@
 rule blastx:
 	input:
 		query=trinitydir+'Trinity.fasta',
-		subject=config["path_to_files"]+'/../uniprot_sprot.fasta'
+		subject=input_path+config["blastx_subject"]
 	output:
 		'blastx/output.blast.txt'
 	log: 	
@@ -10,4 +10,5 @@ rule blastx:
 		'blastx '
 		'-query {input.query} '
 		'-subject {input.subject} '
+		'-num_threads {threads} '
 		'-out {output} >> {log}'

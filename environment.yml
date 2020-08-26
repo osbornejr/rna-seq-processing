@@ -12,3 +12,4 @@ dependencies:
   - trinity
   - detonate
   - blast
+  - yq

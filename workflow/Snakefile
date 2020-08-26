@@ -1,9 +1,11 @@
 shell.executable
 ("/bin/bash")
+#Load in config options, and make sure they are as expected
 configfile: "config.yaml" 
-run_name=os.path.basename(os.path.normpath(config["path_to_files"]))
-workdir:"results/"+run_name
-basedir=workflow.basedir+'/'
+input_path=os.path.join(config["path_to_files"], '') #make sure slash is at end of path
+run_name=os.path.basename(os.path.normpath(input_path)) #get name of job from last directory name 
+workdir:"results/"+run_name #make sandbox for run
+basedir=os.getcwd()+'/' #set basedir for jobs run using specific job directory
 #TODO put long shell commands into scripts and source?
 
 wildcard_constraints: 
@@ -20,8 +22,8 @@ rule all:
 rule clean:
 # all in one cleaning of fastq files with fastp. Could alternatively do this with trimmomatic? But need specific adapter sequences etc. TODO double check quality independently after running fastp with fastqc
 	input:
-		r1=config["path_to_files"]+"/raw-reads/{sample}/{sample}_read_1.fastq.gz",
-		r2=config["path_to_files"]+"/raw-reads/{sample}/{sample}_read_2.fastq.gz"
+		r1=input_path+"raw-reads/{sample}/{sample}_read_1.fastq.gz",
+		r2=input_path+"raw-reads/{sample}/{sample}_read_2.fastq.gz"
 	output: 
 		r1="clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz",
 		r2="clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz",

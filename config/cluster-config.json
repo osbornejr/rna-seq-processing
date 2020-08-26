@@ -8,7 +8,7 @@
     "threads": "1",
     "mem": "4",
     "temp": "0",
-    "storage": "scratch/ra94"
+    "storage": "scratch/ra94+gdata/ra94"
   },
 "clean":
   {
@@ -118,6 +118,12 @@
 "rsem":
   {
     "time": "02:00:00",
+    "threads": "16",
+    "mem": "16"
+  },
+"blastx":
+  {
+    "time": "08:00:00",
     "threads": "16",
     "mem": "16"
   },

@@ -4,7 +4,7 @@
 #PBS -l walltime=48:00:00,mem=100MB,ncpus=1
 #PBS -l wd
 #PBS -N job
-#PBS -lstorage=scratch/ra94
+#PBS -lstorage=scratch/ra94+gdata/ra94
 #PBS -V
 
 # clean up old job logs
@@ -18,4 +18,4 @@ set -u
 
 # unlock directory and run snakemake command
 snakemake --unlock
-snakemake all --profile cluster --no-hooks --cluster-config config/cluster-config.json --use-conda
+snakemake all --profile cluster --no-hooks --cluster-config /scratch/ra94/jr6283/rna-seq-processing/config/cluster-config.json --use-conda
