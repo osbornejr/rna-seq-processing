@@ -1,14 +1,20 @@
 rule blastx:
 	input:
-		query=trinitydir+'Trinity.fasta',
+		query=trinitydir+'Trinity.test.fasta',
 		subject=input_path+config["blastx_subject"]
 	output:
-		'blastx/output.blast.txt'
+		db_location='blastx/uniprot_db',
+		blastx='blastx/output.blast.txt'
 	log: 	
 		'logs/transcript-classification/blastx.out'
 	shell:
+		'makeblastdb '
+		'-in {input.subject} '
+		'-out {output.db_location} '
+		'-dbtype prot '
+		'-parse_seqids && '
 		'blastx '
 		'-query {input.query} '
-		'-subject {input.subject} '
-		'-num_threads {threads} '
-		'-out {output} >> {log}'
+		'-db {output.db_location} '
+		'-num_threads 16 '
+		'-out {output.blastx} >> {log}'
