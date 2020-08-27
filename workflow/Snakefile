@@ -6,6 +6,7 @@ input_path=os.path.join(config["path_to_files"], '') #make sure slash is at end 
 run_name=os.path.basename(os.path.normpath(input_path)) #get name of job from last directory name 
 workdir:"results/"+run_name #make sandbox for run
 basedir=os.getcwd()+'/' #set basedir for jobs run using specific job directory
+flowdir=workflow.basedir+"/"
 #TODO put long shell commands into scripts and source?
 
 wildcard_constraints: 
@@ -15,7 +16,8 @@ include: "rules/"+config["assembly_method"]+"-assembly.smk"
 include: "rules/transcript-classification.smk"
 	
 rule all:
-	input:					
+	input:	
+		expand('blastx/blast_input_{X}.fasta',X=[1..5]			
 		'blastx/output.blast.txt',		
 		expand('output-data/{read_type}/{sample}_rsem.{read_type}.results',sample=config["samples"],read_type=["isoforms","genes"])
 	
