@@ -11,14 +11,12 @@ flowdir=workflow.basedir+"/"
 
 wildcard_constraints: 
 	sample = '|'.join(config["samples"]) 
-
 include: "rules/"+config["assembly_method"]+"-assembly.smk"
 include: "rules/transcript-classification.smk"
-	
+bat=5
 rule all:
 	input:	
-		expand('blastx/blast_input_{X}.fasta',X=[1..5]			
-		'blastx/output.blast.txt',		
+		expand('blastx/output_{batch}.blast.txt',batch=list(range(1+bat))[1:bat+1]),	
 		expand('output-data/{read_type}/{sample}_rsem.{read_type}.results',sample=config["samples"],read_type=["isoforms","genes"])
 	
 rule clean:

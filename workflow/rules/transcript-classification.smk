@@ -18,17 +18,17 @@ rule blast_batch:
 BAT=list(range(1+bat))[1:bat+1]
 rule blastx:
 	input:
-		'blastx/blast_input_{X}.fasta',
+		query='blastx/blast_input_{batch}.fasta',
 		subject=input_path+config["blastx_subject"]
 	params:
 		db_location='blastx/uniprot_db'
-	output:
-		blastx='blastx/output.blast.txt'
+	output: 
+		'blastx/output_{batch}.blast.txt'
 	log: 	
-		'logs/transcript-classification/blastx.out'
+		'logs/transcript-classification/blastx_{batch}.out'
 	shell:
 		'makeblastdb '
-		'-in blastx/blast_input_{wildcards.X}.fasta '
+		'-in {input.query} '
 		'-out {params.db_location} '
 		'-dbtype prot '
 		'-parse_seqids && '
@@ -36,4 +36,4 @@ rule blastx:
 		'-query {input.query} '
 		'-db {params.db_location} '
 		'-num_threads 48 '
-		'-out {output.blastx} >> {log}'
+		'-out {output} >> {log}'
