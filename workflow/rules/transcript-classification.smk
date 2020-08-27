@@ -9,14 +9,16 @@ rule blast_batch:
 	input:
 		transcriptome=trinitydir+'Trinity.fasta'
 	params:
-		outdir="blastx"
+		outdir="blastx",
+		transcripts_per_batch=100000
 	output:
 		expand('blastx/blast_input_{X}.fasta',X=list(range(1+bat))[1:bat+1])
-	script:
-		flowdir+"scripts/split_transcriptome_for_blast.sh {input.transcriptome} {params.outdir} {params.transcripts_per_batch}"
+	shell:
+		'bash '+flowdir+'scripts/split_transcriptome_for_blast.sh {input.transcriptome} {params.outdir} {params.transcripts_per_batch}'
 
 BAT=list(range(1+bat))[1:bat+1]
 rule blastx:
+#TODO maybe switch if possible to running each batch on the same node. Might require some form of MPI parallelism?
 	input:
 		query='blastx/blast_input_{batch}.fasta',
 		subject=input_path+config["blastx_subject"]
@@ -28,7 +30,7 @@ rule blastx:
 		'logs/transcript-classification/blastx_{batch}.out'
 	shell:
 		'makeblastdb '
-		'-in {input.query} '
+		'-in {input.subject} '
 		'-out {params.db_location} '
 		'-dbtype prot '
 		'-parse_seqids && '
