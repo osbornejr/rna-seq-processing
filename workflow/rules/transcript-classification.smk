@@ -54,8 +54,8 @@ rule post_blastx:
 		'blastx/blast-coding.fasta',
 		'blastx/blast-non-coding.fasta'
 	shell:
-		'''rm -rf blastx/blast-no-hit.list && '''	
-		'''for file in blastx/output*; do awk 'BEGIN {{RS = "Query=";ORS=""}} /***** No hits found *****/ {{print ">"$1"\n"}} ' $PWD/$file >> blastx/blast-no-hit.list ;done &&'''
+		'''rm -f blastx/blast-no-hit.list && '''	
+		'''for file in blastx/output*; do awk 'BEGIN {{RS = "Query=";ORS=""}} /***** No hits found *****/ {{print ">"$1"\\n"}} ' $PWD/$file >> blastx/blast-no-hit.list ;done &&'''
 		'''grep -A1 -Ff blastx/blast-no-hit.list blastx/Trinity{params.min_length}.fasta | grep -v '^--' > blastx/blast-non-coding.fasta && '''
 		'''grep -vFf blastx/blast-non-coding.fasta blastx/Trinity{params.min_length}.fasta > blastx/blast-coding.fasta'''	
 		
