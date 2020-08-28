@@ -4,7 +4,7 @@
     "account": "ra94",
     "name": "job_{rule}",
     "queue": "normal",
-    "time": "00:01:00",
+    "time": "00:10:00",
     "threads": "1",
     "mem": "4",
     "temp": "0",
