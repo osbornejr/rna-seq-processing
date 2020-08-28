@@ -5,14 +5,14 @@ def batches(file_path,transcripts_per_batch):
 	return(bat)
 #TODO fix blast process so that it is generalisable to any dataset. This might involve using subworkflow concept which produces the transcriptome before blast etc are run (could be messy).
 bat=batches(trinitydir+'Trinity.fasta',100000)
-rule blast_prep:
+rule pre_blastx:
 # remove transcripts below certain length, then split transcriptome up into 
 	input:
 		transcriptome=trinitydir+'Trinity.fasta'
 	params:
 		outdir="blastx",
 		transcripts_per_batch=100000,
-		min_length=150
+		min_length=config["min_transcript_length"]
 	output:
 		expand('blastx/blast_input_{X}.fasta',X=list(range(1+bat))[1:bat+1])
 	shell:
@@ -43,3 +43,19 @@ rule blastx:
 		'-db {params.db_location} '
 		'-num_threads 48 '
 		'-out {output} >> {log}'
+
+rule post_blastx:
+	input:
+		expand('blastx/output_{batch}.blast.txt',batch=list(range(1+bat))[1:bat+1]),	
+		'blastx/Trinity'+config["min_transcript_length"]+'.fasta'
+	params:
+		min_length=config["min_transcript_length"]
+	output:
+		'blastx/blast-coding.fasta',
+		'blastx/blast-non-coding.fasta'
+	shell:
+		'''rm -rf blastx/blast-no-hit.list && '''	
+		'''for file in blastx/output*; do awk 'BEGIN {{RS = "Query=";ORS=""}} /***** No hits found *****/ {{print ">"$1"\n"}} ' $PWD/$file >> blastx/blast-no-hit.list ;done &&'''
+		'''grep -A1 -Ff blastx/blast-no-hit.list blastx/Trinity{params.min_length}.fasta | grep -v '^--' > blastx/blast-non-coding.fasta && '''
+		'''grep -vFf blastx/blast-non-coding.fasta blastx/Trinity{params.min_length}.fasta > blastx/blast-coding.fasta'''	
+		
