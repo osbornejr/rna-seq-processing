@@ -4,7 +4,7 @@ ref_genome: Kabuli_UWA-v2.6.3
 blastx_subject: blastx-input/uniprot_sprot.fasta
 blastx_link: ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz  
 min_transcript_length: "150"
-RNAsamba_training_set: rna-samba-input/full-length-weights.hdf5 
+RNAsamba_training_set: rnasamba-input/partial_length_weights.hdf5 
 RNAsamba_training_link: https://raw.githubusercontent.com/apcamargo/RNAsamba/master/data/full_length_weights.hdf5 #curl -O https://raw.githubusercontent.com/apcamargo/RNAsamba/master/data/partial_length_weights.hdf5
 samples:
        - polyA_minus_sample_1

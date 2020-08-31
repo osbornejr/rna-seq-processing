@@ -16,8 +16,8 @@ include: "rules/transcript-classification.smk"
 bat=5
 rule all:
 	input:	
-		'blastx/blast-coding.fasta',
-		'blastx/blast-non-coding.fasta',
+		'rnasamba/non-code-hits.list',
+		'rnasamba/code-hits.list',
 		expand('output-data/{read_type}/{sample}_rsem.{read_type}.results',sample=config["samples"],read_type=["isoforms","genes"])
 	
 rule clean:

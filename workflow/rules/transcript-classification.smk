@@ -58,4 +58,16 @@ rule post_blastx:
 		'''for file in blastx/output*; do awk 'BEGIN {{RS = "Query=";ORS=""}} /***** No hits found *****/ {{print ">"$1"\\n"}} ' $PWD/$file >> blastx/blast-no-hit.list ;done &&'''
 		'''grep -A1 -Ff blastx/blast-no-hit.list blastx/Trinity{params.min_length}.fasta | grep -v '^--' > blastx/blast-non-coding.fasta && '''
 		'''grep -vFf blastx/blast-non-coding.fasta blastx/Trinity{params.min_length}.fasta > blastx/blast-coding.fasta'''	
-		
+rule rnasamba_classify:
+	input:
+		noncoding='blastx/blast-coding.fasta',
+		coding='blastx/blast-non-coding.fasta',
+		training_set=input_path+config["RNAsamba_training_set"]
+	output:
+		noncoding='rnasamba/non-code-hits.list',
+		coding='rnasamba/code-hits.list'
+	shell:
+		'rnasamba classify rnasamba/non-code-classification.tsv {input.noncoding} {input.training_set} && '
+		'rnasamba classify rnasamba/code-classification.tsv {input.coding} {input.training_set} && '
+		'''awk '/noncoding/ {{print $1}}' non-code-classification.tsv > {output.noncoding} && '''
+		'''awk '/ coding/ {{print $1}}' code-classification.tsv > {output.coding} '''

@@ -131,7 +131,13 @@
   {
     "time": "00:30:00",
     "threads": "1",
-    "mem": "1"
+    "mem": "8"
+  },
+"rnasamba_classify":
+  {
+    "time": "00:30:00",
+    "threads": "1",
+    "mem": "64"
   },
 "htseq":
   {
