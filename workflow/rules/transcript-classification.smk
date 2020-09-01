@@ -60,8 +60,8 @@ rule post_blastx:
 		'''grep -vFf blastx/blast-non-coding.fasta blastx/Trinity{params.min_length}.fasta > blastx/blast-coding.fasta'''	
 rule rnasamba_classify:
 	input:
-		noncoding='blastx/blast-coding.fasta',
-		coding='blastx/blast-non-coding.fasta',
+		coding='blastx/blast-coding.fasta',
+		noncoding='blastx/blast-non-coding.fasta',
 		training_set=input_path+config["RNAsamba_training_set"]
 	output:
 		noncoding='rnasamba/non-code-hits.list',
@@ -69,5 +69,5 @@ rule rnasamba_classify:
 	shell:
 		'rnasamba classify rnasamba/non-code-classification.tsv {input.noncoding} {input.training_set} && '
 		'rnasamba classify rnasamba/code-classification.tsv {input.coding} {input.training_set} && '
-		'''awk '/noncoding/ {{print $1}}' non-code-classification.tsv > {output.noncoding} && '''
-		'''awk '/ coding/ {{print $1}}' code-classification.tsv > {output.coding} '''
+		'''awk '$NF=="noncoding" {{print $1}}' rnasamba/non-code-classification.tsv > {output.noncoding} && '''
+		'''awk '$NF=="coding" {{print $1}}' rnasamba/code-classification.tsv > {output.coding} '''
