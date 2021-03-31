@@ -12,12 +12,12 @@ flowdir=workflow.basedir+"/"
 wildcard_constraints: 
 	sample = '|'.join(config["samples"]) 
 include: "rules/"+config["assembly_method"]+"-assembly.smk"
-include: "rules/transcript-classification.smk"
+#include: "rules/transcript-classification.smk"
 bat=5
 rule all:
 	input:	
-		'rnasamba/non-code-hits.list',
-		'rnasamba/code-hits.list',
+		#'rnasamba/non-code-hits.list',
+		#'rnasamba/code-hits.list',
 		expand('output-data/{read_type}/{sample}_rsem.{read_type}.results',sample=config["samples"],read_type=["isoforms","genes"])
 	
 rule clean:
@@ -26,10 +26,10 @@ rule clean:
 		r1=input_path+"raw-reads/{sample}/{sample}_read_1.fastq.gz",
 		r2=input_path+"raw-reads/{sample}/{sample}_read_2.fastq.gz"
 	output: 
-		r1="clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz",
-		r2="clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz",
-		html="reports/{sample}/{sample}_fastp.html",
-		json="reports/{sample}/{sample}_fastp.json"
+		r1=basedir+"clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz",
+		r2=basedir+"clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz",
+		html=basedir+"reports/{sample}/{sample}_fastp.html",
+		json=basedir+"reports/{sample}/{sample}_fastp.json"
 		#other fastp outputs?
 		# threads?
 	shell: 
