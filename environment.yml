@@ -5,7 +5,7 @@ channels:
   - defaults
 dependencies:
   - fastp
-  - snakemake
+  - snakemake=5.10
   - samtools
   - rsem
   - bowtie
