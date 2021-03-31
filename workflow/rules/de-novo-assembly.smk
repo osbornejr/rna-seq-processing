@@ -13,8 +13,7 @@ rule trinity_normalisation:
                 left=",".join(map(str,input.left))
                 right=",".join(map(str,input.right))
                 shell(
-		'mkdir -p normalised-reads >> {log} && '
-		'cd normalised-reads >> {log} && '
+		'cd normalised-reads && '
 		'insilico_read_normalization.pl '
 		'--seqType fq '
 		'--JM 100G '
@@ -253,8 +252,8 @@ rule trinity_abundance:
 	input:
 		trinitydir+'Trinity.fasta',
 		trinitydir+'Trinity.fasta.rsem.idx.fa',
-		r1 = 'clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz',
-		r2 = 'clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz'
+		r1 = basedir+'clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz',
+		r2 = basedir+'clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz'
 
 	output: 
 		'output-data/isoforms/{sample}_rsem.isoforms.results',
