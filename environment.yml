@@ -5,7 +5,7 @@ channels:
   - defaults
 dependencies:
   - fastp
-  - snakemake=5.10
+  - snakemake
   - samtools
   - rsem
   - bowtie
@@ -14,3 +14,4 @@ dependencies:
   - blast
   - yq
   - rnasamba
+  - python=3.6.6
