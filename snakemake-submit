@@ -5,7 +5,6 @@
 #PBS -l wd
 #PBS -N job
 #PBS -lstorage=scratch/ra94+gdata/ra94
-#PBS -V
 
 # clean up old job logs
 rm *.e* && rm *.o*
