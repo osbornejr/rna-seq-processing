@@ -24,8 +24,8 @@
 "trinity_normalisation":
   {
     "queue":"normal",
-    "time": "24:00:00",
-    "threads": "16",
+    "time": "12:00:00",
+    "threads": "48",
     "mem": "190"
   },
 "trinity_assembly":
