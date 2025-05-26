@@ -1,4 +1,4 @@
-path_to_files: /g/data/ra94/mayank-de-novo
+path_to_files: /Volumes/Mac/gadi-data/mayank-de-novo
 assembly_method: de-novo   #de-novo reference-genome reference-transcriptome?
 ref_genome: Kabuli_UWA-v2.6.3
 blastx_subject: blastx-input/uniprot_sprot.fasta
