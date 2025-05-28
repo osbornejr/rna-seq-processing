@@ -2,7 +2,7 @@ trinitydir="trinity-transcriptome-assembly/"
 rule trinity_normalisation:
 	input: 
 		left=expand(basedir+"clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz",sample=config["samples"]),
-                right=expand(basedir+"clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz",sample=config["samples"])
+		right=expand(basedir+"clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz",sample=config["samples"])
 	output: 
 		left=basedir+"normalised-reads/left.norm.fq",
 		right=basedir+"normalised-reads/right.norm.fq"
