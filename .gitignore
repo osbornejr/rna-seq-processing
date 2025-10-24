@@ -21,3 +21,4 @@ results
 test*
 *.e*
 *.o*
+bin

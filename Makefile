@@ -1,6 +1,26 @@
 edit: ## vim command to initialise editing environment
 	vim workflow/Snakefile workflow/rules/* workflow/de-novo-assembly/* 
+#unison setup
+PLATFORM := $(shell uname)
+ARCH := $(shell uname -m)
+UNISON_VERSION := 2.53.7
 
+ifeq ($(PLATFORM),Darwin)
+ifeq ($(ARCH),x86_64)
+unison_file := "unison-$(UNISON_VERSION)-macos-x86_64.tar.gz"
+endif
+ifeq ($(ARCH),arm64)
+unison_file := "unison-$(UNISON_VERSION)-macos-arm64.tar.gz"
+endif
+endif
+ifeq ($(PLATFORM),Linux)
+ifeq ($(ARCH),x86_64)
+unison_file := "unison-$(UNISON_VERSION)-ubuntu-x86_64.tar.gz"
+endif
+ifeq ($(ARCH),arm64)
+unison_file := "unison-$(UNISON_VERSION)-ubuntu-arm64.tar.gz"
+endif
+endif
 unison: ##use this to sync repo with a remote host. (this command just installs unison)
 	rm -rf bin/unison
 	mkdir -p bin/unison
