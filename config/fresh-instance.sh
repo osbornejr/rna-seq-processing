@@ -72,11 +72,11 @@ conda install -c conda-forge mamba
 
 #ENV
 #pull repo with submodules
-git clone --recurse-submodules https://github.com/osbornejr/rna-seq-processing.git
+#git clone --recurse-submodules https://github.com/osbornejr/rna-seq-processing.git
 #change permissions for all dirs in repo
 sudo chmod -R 777 rna-seq-processing
 sudo chown -R ec2-user:ec2-user rna-seq-processing
 #cd into repo
 cd rna-seq-processing
 #install unison
-#make unison
+make unison
