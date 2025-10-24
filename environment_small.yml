@@ -1,4 +1,4 @@
-name: rna-seq
+name: rna-seq-test
 channels:
   - conda-forge
   - bioconda
@@ -7,11 +7,5 @@ dependencies:
   - fastp
   - samtools
   - rsem
-  - bowtie
-  - trinity
-  - detonate
-  - blast
-  - yq
-  - rnasamba
   - snakemake
   - python
