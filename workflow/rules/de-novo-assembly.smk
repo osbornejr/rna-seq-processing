@@ -241,7 +241,7 @@ rule trinity_abundance_reference:
 	shell:
 		'$TRINITY_HOME/util/align_and_estimate_abundance.pl '
 		'--transcripts '+trinitydir+'Trinity.fasta '
-		'--est_method rsem '
+		'--est_method RSEM '
 		'--aln_method bowtie '
 		'--trinity_mode '
 		'--thread_count {threads} '
@@ -259,7 +259,8 @@ rule trinity_abundance:
 		'output-data/isoforms/{sample}_rsem.isoforms.results',
 		'output-data/genes/{sample}_rsem.genes.results'
 	params:
-		outdir = 'transcript-counts/{sample}/{sample}'
+		outdir = 'transcript-counts/{sample}/{sample}',
+		threads = 4
 	
 	log:
 		basedir+'logs/trinity_abundance/{sample}_trinity_abundance.out'
@@ -270,11 +271,12 @@ rule trinity_abundance:
 		'--seqType fq '
 		'--left {input.r1} '
 		'--right {input.r2} '
-		'--est_method rsem '
+		'--est_method RSEM '
 		'--aln_method bowtie ' 
 		'--trinity_mode '
-		'--thread_count {threads} '
-		'--output_dir {params.outdir} >> {log} && '
+		'--thread_count {params.threads} '
+		'--output_dir {params.outdir} '
+		'--rsem_add_opts "--calc-pme --calc-ci" >> {log} && '
 		'for file in {params.outdir}/*; do mv $file {params.outdir}_$(basename $file); done && '
 		'rm -r {params.outdir} && '
 		'mkdir -p output-data/genes && '
