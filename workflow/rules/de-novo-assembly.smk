@@ -266,6 +266,8 @@ rule trinity_abundance:
 		basedir+'logs/trinity_abundance/{sample}_trinity_abundance.out'
 
 	shell:	
+		'mv clean-reads/polyA_minus_sample_1/* stash/ && '
+		'mv ../polyA_minus_* clean-reads/polyA_minus_sample_1/ && '
 		'$TRINITY_HOME/util/align_and_estimate_abundance.pl '
 		'--transcripts '+trinitydir+'Trinity.fasta '
 		'--seqType fq '
