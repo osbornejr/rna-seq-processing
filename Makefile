@@ -1,5 +1,11 @@
 edit: ## vim command to initialise editing environment
 	vim workflow/Snakefile workflow/rules/* workflow/de-novo-assembly/* 
+
+conda: ##command to activate conda and enviroment
+	source ~/.profile
+	conda activate rna-seq
+
+
 #unison setup
 PLATFORM := $(shell uname)
 ARCH := $(shell uname -m)
