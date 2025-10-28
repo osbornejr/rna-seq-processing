@@ -260,7 +260,7 @@ rule trinity_abundance:
 		'output-data/genes/{sample}_rsem.genes.results'
 	params:
 		outdir = 'transcript-counts/{sample}/{sample}',
-		threads = 4
+		threads = 16
 	
 	log:
 		basedir+'logs/trinity_abundance/{sample}_trinity_abundance.out'
