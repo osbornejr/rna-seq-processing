@@ -18,7 +18,7 @@ rule all:
 	input:	
 		#'rnasamba/non-code-hits.list',
 		#'rnasamba/code-hits.list',
-		expand('output-data/{read_type}/{sample}_rsem.{read_type}.results',sample=config["samples"],read_type=["isoforms","genes"])
+		expand('output-data/{read_type}/{sample}_RSEM.{read_type}.results',sample=config["samples"],read_type=["isoforms","genes"])
 	
 rule clean:
 # all in one cleaning of fastq files with fastp. Could alternatively do this with trimmomatic? But need specific adapter sequences etc. TODO double check quality independently after running fastp with fastqc
