@@ -1,0 +1,11 @@
+##Paths to sync
+path = workflow
+path = config
+path = environment.yml
+path = config.yaml
+path = Makefile
+
+##watch
+repeat = watch
+##ignore
+#ignore = Path config/unison/**
