@@ -256,11 +256,11 @@ rule trinity_abundance:
 		r2 = basedir+'clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz'
 
 	output: 
-		'output-data/isoforms/{sample}_rsem.isoforms.results',
-		'output-data/genes/{sample}_rsem.genes.results'
+		'output-data/isoforms/{sample}_RSEM.isoforms.results',
+		'output-data/genes/{sample}_RSEM.genes.results'
 	params:
 		outdir = 'transcript-counts/{sample}/{sample}',
-		threads = 4
+		threads = 8
 	
 	log:
 		basedir+'logs/trinity_abundance/{sample}_trinity_abundance.out'
