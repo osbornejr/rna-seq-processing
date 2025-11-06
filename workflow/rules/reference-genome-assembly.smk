@@ -47,7 +47,7 @@ rule rsem_reference:
                 'conda activate rna-seq && '
                 'set -u && '
                 'rsem-prepare-reference {input.fasta} --star -p {threads} --gtf {input.gtf} {params.outdir}'
-
+##2025 update-- have left the single pass align as is with temp dir in case it is needed again (eg on gadi) other rules changed to work without temp dir on aws
 rule align:
 	input:
 		r1 = 'clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz',
@@ -96,12 +96,12 @@ rule align_pass_1:
 		#mkdir {params.outdir} && \
 		#cd {params.outdir} && \
 		'STAR --runThreadN {threads} '
-		'--outFileNamePrefix {params.tempdir}/ '
+		'--outFileNamePrefix {params.outdir}/ '
 		'--genomeDir {params.indir} '
 		'--readFilesIn {input.r1} {input.r2} '
 		'--readFilesCommand zcat '
-		'--outSAMtype BAM Unsorted && rm {params.rmbam} &&'
-		'mv {params.tempdir}/* {params.outdir}' 
+		'--outSAMtype BAM Unsorted && rm {params.rmbam} '
+		#'mv {params.tempdir}/* {params.outdir}' 
 
 rule filter:
 	input:
@@ -132,13 +132,13 @@ rule align_pass_2:
 		#'cd {params.outdir} && '
 		'STAR --runThreadN {threads} '
 		'--genomeDir {params.indir} '
-		'--outFileNamePrefix {params.tempdir}/ '
+		'--outFileNamePrefix {params.outdir}/ '
 		'--readFilesIn {input.r1} {input.r2} '
 		'--readFilesCommand zcat '
 		'--outSAMtype BAM SortedByCoordinate '
 		'--sjdbFileChrStartEnd {input.sj_files} '
-		'--quantMode TranscriptomeSAM GeneCounts && '
-		'mv {params.tempdir}/* {params.outdir}' 
+		'--quantMode TranscriptomeSAM GeneCounts '
+		#'mv {params.tempdir}/* {params.outdir}' 
 
 
 rule rsem:
