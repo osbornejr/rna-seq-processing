@@ -1,6 +1,6 @@
-path_to_files: /Volumes/Mac/gadi-data/mayank-de-novo
-assembly_method: de-novo   #de-novo reference-genome reference-transcriptome?
-ref_genome: Kabuli_UWA-v2.6.3
+path_to_files: /home/ec2-user/rna-seq-processing/data/mayank-reference-genome/
+assembly_method: reference-genome   #de-novo reference-genome reference-transcriptome?
+ref_genome: CDCFrontier_v2.0 #CDCFrontier_v2.0  Kabuli_UWA-v2.6.3
 blastx_subject: blastx-input/uniprot_sprot.fasta
 blastx_link: ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz  
 min_transcript_length: "150"

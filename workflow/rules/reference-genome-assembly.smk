@@ -29,7 +29,8 @@ rule rsem_reference:
                 gtf = 'reference-input/'+config["ref_genome"]+'/'+config["ref_genome"]+'.gtf'
 
         params:
-                outdir = 'reference-index/'+config["ref_genome"]+'/'+config["ref_genome"]+''
+                outdir = 'reference-index/'+config["ref_genome"]+'/'+config["ref_genome"]+'',
+		threads = 8
 
         output:
                 grp = 'reference-index/'+config["ref_genome"]+'/'+config["ref_genome"]+'.grp',
@@ -46,7 +47,8 @@ rule rsem_reference:
                 'eval "$(conda shell.bash hook)" && '
                 'conda activate rna-seq && '
                 'set -u && '
-                'rsem-prepare-reference {input.fasta} --star -p {threads} --gtf {input.gtf} {params.outdir}'
+                'rsem-prepare-reference {input.fasta} --star -p {params.threads} --gtf {input.gtf} {params.outdir}'
+
 ##2025 update-- have left the single pass align as is with temp dir in case it is needed again (eg on gadi) other rules changed to work without temp dir on aws
 rule align:
 	input:
@@ -58,6 +60,7 @@ rule align:
 		indir = 'reference-index/'+config["ref_genome"],
 		tempdir = '$PBS_JOBFS',
 		outdir = 'aligned-reads/{sample}/{sample}',
+		threads = 8
 	output:
 		'aligned-reads/{sample}/{sample}_single_pass/Aligned.sortedByCoord.out.bam',
 		'aligned-reads/{sample}/{sample}_single_pass/Aligned.toTranscriptome.out.bam'
@@ -65,7 +68,7 @@ rule align:
 		#'rm -rf {params.outdir} && '
 		#'mkdir {params.outdir} && '
 		#'cd {params.outdir} && '
-		'STAR --runThreadN {threads} '
+		'STAR --runThreadN {params.threads} '
 		'--genomeDir {params.indir} '
 		'--outFileNamePrefix {params.tempdir}/ '
 		'--readFilesIn {input.r1} {input.r2} '
@@ -83,7 +86,8 @@ rule align_pass_1:
 		indir  = 'reference-index/'+config["ref_genome"],
 		tempdir = '$PBS_JOBFS',
 		outdir = 'aligned-reads/{sample}/{sample}_pass_1',
-		rmbam = 'aligned-reads/{sample}/{sample}_pass_1/Aligned.out.bam'
+		rmbam = 'aligned-reads/{sample}/{sample}_pass_1/Aligned.out.bam',
+		threads = 8
 	output:
 		temp('aligned-reads/{sample}/{sample}_pass_1/SJ.out.tab')
 	#conda: "environment.yml"
@@ -95,7 +99,7 @@ rule align_pass_1:
 		#rm -rf {params.outdir} && \
 		#mkdir {params.outdir} && \
 		#cd {params.outdir} && \
-		'STAR --runThreadN {threads} '
+		'STAR --runThreadN {params.threads} '
 		'--outFileNamePrefix {params.outdir}/ '
 		'--genomeDir {params.indir} '
 		'--readFilesIn {input.r1} {input.r2} '
@@ -122,7 +126,8 @@ rule align_pass_2:
 	params:
 		indir  = 'reference-index/'+config["ref_genome"],
 		tempdir = '$PBS_JOBFS',
-		outdir = 'aligned-reads/{sample}/{sample}_pass_2'
+		outdir = 'aligned-reads/{sample}/{sample}_pass_2',
+		threads = 8
 	output:
 		temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.sortedByCoord.out.bam'),
 		temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.toTranscriptome.out.bam')
@@ -130,7 +135,7 @@ rule align_pass_2:
 		#'rm -rf {params.outdir} && '
 		#'mkdir {params.outdir} && '
 		#'cd {params.outdir} && '
-		'STAR --runThreadN {threads} '
+		'STAR --runThreadN {params.threads} '
 		'--genomeDir {params.indir} '
 		'--outFileNamePrefix {params.outdir}/ '
 		'--readFilesIn {input.r1} {input.r2} '
@@ -148,15 +153,15 @@ rule rsem:
 
 	params: 
 		indir  = 'reference-index/'+config["ref_genome"]+'/'+config["ref_genome"], 
-		outdir = 'transcript-counts/{sample}/{sample}_rsem'
+		outdir = 'transcript-counts/{sample}/{sample}_RSEM'
 
-	output: 'output-data/isoforms/{sample}_rsem.isoforms.results',
-		'output-data/genes/{sample}_rsem.genes.results'
+	output: 'output-data/isoforms/{sample}_RSEM.isoforms.results',
+		'output-data/genes/{sample}_RSEM.genes.results'
 	
-	log:	'logs/rsem-quantification/{sample}_rsem.log'
+	log:	'logs/rsem-quantification/{sample}_RSEM.log'
 
 	shell:
-		'rsem-calculate-expression --bam --paired-end -p 1 {input.bam} {params.indir} {params.outdir} && '
+		'rsem-calculate-expression --bam --paired-end --calc-pme -p 8 {input.bam} {params.indir} {params.outdir} && '
 		'find ./transcript-counts/ -name "*.genes.results" -exec cp {{}} output-data/genes/ \; && '
 		'find ./transcript-counts/ -name "*.isoforms.results" -exec cp {{}} output-data/isoforms/ \; '
 

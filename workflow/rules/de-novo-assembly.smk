@@ -281,7 +281,9 @@ rule trinity_abundance:
 		'rm -r {params.outdir} && '
 		'mkdir -p output-data/genes && '
 		'mkdir -p output-data/isoforms && '
-		'find ./transcript-counts/ -name "*.genes.results" -exec cp {{}} output-data/genes/ \; && '
-		'find ./transcript-counts/ -name "*.isoforms.results" -exec cp {{}} output-data/isoforms/ \; '
+		'cp {params.outdir}_RSEM.genes.results output-data/genes/ && '
+		'cp {params.outdir}_RSEM.isoforms.results output-data/isoforms/ '
+		#'find ./transcript-counts/ -name "*.genes.results" -exec cp {{}} output-data/genes/ \; && '
+		#'find ./transcript-counts/ -name "*.isoforms.results" -exec cp {{}} output-data/isoforms/ \; '
 	
 	
