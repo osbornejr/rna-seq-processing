@@ -154,7 +154,8 @@ rule rsem:
 
 	params: 
 		indir  = 'reference-index/'+config["ref_genome"]+'/'+config["ref_genome"], 
-		outdir = 'transcript-counts/{sample}/{sample}_RSEM'
+		outdir = 'transcript-counts/{sample}',
+                outpre = '{sample}_RSEM'
 
 	output: 'output-data/isoforms/{sample}_RSEM.isoforms.results',
 		'output-data/genes/{sample}_RSEM.genes.results'
@@ -162,11 +163,11 @@ rule rsem:
 	log:	'logs/rsem-quantification/{sample}_RSEM.log'
 
 	shell:
-		'rsem-calculate-expression --bam --paired-end --calc-pme -p 8 {input.bam} {params.indir} {params.outdir} && '
+		'rsem-calculate-expression --bam --paired-end --calc-pme -p 8 {input.bam} {params.indir} {params.outdir}/{params.outpre} && '
 		'mkdir -p output-data/genes && '
 		'mkdir -p output-data/isoforms && '
-		'cp {params.outdir}_RSEM.genes.results output-data/genes/ && '
-		'cp {params.outdir}_RSEM.isoforms.results output-data/isoforms/ '
+		'cp {params.outdir}/{params.outpre}.genes.results output-data/genes/ && '
+		'cp {params.outdir}{params.outpre}.isoforms.results output-data/isoforms/ '
 		#'find ./transcript-counts/ -name "*.genes.results" -exec cp {{}} output-data/genes/ \; && '
 		#'find ./transcript-counts/ -name "*.isoforms.results" -exec cp {{}} output-data/isoforms/ \; '
 
