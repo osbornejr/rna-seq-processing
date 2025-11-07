@@ -154,8 +154,8 @@ rule rsem:
 
 	params: 
 		indir  = 'reference-index/'+config["ref_genome"]+'/'+config["ref_genome"], 
-		outdir = 'transcript-counts/{sample}/{sample}_RSEM',
-		threads = 16
+		outdir = 'transcript-counts/{sample}/{sample}',
+		threads = 8
 
 	output: 'output-data/isoforms/{sample}_RSEM.isoforms.results',
 		'output-data/genes/{sample}_RSEM.genes.results'
@@ -163,6 +163,7 @@ rule rsem:
 	log:	'logs/rsem-quantification/{sample}_RSEM.log'
 
 	shell:
+		'mkdir -p {params.outdir} &&'
 		'rsem-calculate-expression --bam --paired-end --calc-pme -p {params.threads} {input.bam} {params.indir} {params.outdir} && '
 		'mkdir -p output-data/genes && '
 		'mkdir -p output-data/isoforms && '
