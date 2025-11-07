@@ -129,7 +129,7 @@ rule align_pass_2:
 		outdir = 'aligned-reads/{sample}/{sample}_pass_2',
 		threads = 8
 	output:
-		temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.sortedByCoord.out.bam'),
+		#temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.sortedByCoord.out.bam'),
 		temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.toTranscriptome.out.bam')
 	shell:
 		#'rm -rf {params.outdir} && '
@@ -140,7 +140,8 @@ rule align_pass_2:
 		'--outFileNamePrefix {params.outdir}/ '
 		'--readFilesIn {input.r1} {input.r2} '
 		'--readFilesCommand zcat '
-		'--outSAMtype BAM SortedByCoordinate '
+		'--outSAMtype BAM Unsorted '
+		#'--outSAMtype BAM SortedByCoordinate '
 		'--sjdbFileChrStartEnd {input.sj_files} '
 		'--quantMode TranscriptomeSAM GeneCounts '
 		#'mv {params.tempdir}/* {params.outdir}' 
@@ -165,7 +166,7 @@ rule rsem:
 		'find ./transcript-counts/ -name "*.genes.results" -exec cp {{}} output-data/genes/ \; && '
 		'find ./transcript-counts/ -name "*.isoforms.results" -exec cp {{}} output-data/isoforms/ \; '
 
-#Use htseq rule to quantify GENE counts.  
+#Use htseq rule to quantify GENE counts. 2025 Note: this is the only rule that requires sorted BAM, so only turn on for this here.
 #rule htseq:
 #	input:
 #		bam = 'aligned-reads/{sample}/{sample}_pass_2/Aligned.sortedByCoord.out.bam',
