@@ -164,8 +164,12 @@ rule rsem:
 
 	shell:
 		'rsem-calculate-expression --bam --paired-end --calc-pme -p {params.threads} {input.bam} {params.indir} {params.outdir} && '
-		'find ./transcript-counts/ -name "*.genes.results" -exec cp {{}} output-data/genes/ \; && '
-		'find ./transcript-counts/ -name "*.isoforms.results" -exec cp {{}} output-data/isoforms/ \; '
+		'mkdir -p output-data/genes && '
+		'mkdir -p output-data/isoforms && '
+		'cp {params.outdir}_RSEM.genes.results output-data/genes/ && '
+		'cp {params.outdir}_RSEM.isoforms.results output-data/isoforms/ '
+		#'find ./transcript-counts/ -name "*.genes.results" -exec cp {{}} output-data/genes/ \; && '
+		#'find ./transcript-counts/ -name "*.isoforms.results" -exec cp {{}} output-data/isoforms/ \; '
 
 #Use htseq rule to quantify GENE counts. 2025 Note: this is the only rule that requires sorted BAM, so only turn on for this here.
 #rule htseq:
