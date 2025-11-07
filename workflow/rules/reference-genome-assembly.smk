@@ -127,7 +127,7 @@ rule align_pass_2:
 		indir  = 'reference-index/'+config["ref_genome"],
 		tempdir = '$PBS_JOBFS',
 		outdir = 'aligned-reads/{sample}/{sample}_pass_2',
-		threads = 8
+		threads = 16
 	output:
 		temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.sortedByCoord.out.bam'),
 		temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.toTranscriptome.out.bam')
@@ -153,7 +153,8 @@ rule rsem:
 
 	params: 
 		indir  = 'reference-index/'+config["ref_genome"]+'/'+config["ref_genome"], 
-		outdir = 'transcript-counts/{sample}/{sample}_RSEM'
+		outdir = 'transcript-counts/{sample}/{sample}_RSEM',
+		threads = 16
 
 	output: 'output-data/isoforms/{sample}_RSEM.isoforms.results',
 		'output-data/genes/{sample}_RSEM.genes.results'
@@ -161,7 +162,7 @@ rule rsem:
 	log:	'logs/rsem-quantification/{sample}_RSEM.log'
 
 	shell:
-		'rsem-calculate-expression --bam --paired-end --calc-pme -p 8 {input.bam} {params.indir} {params.outdir} && '
+		'rsem-calculate-expression --bam --paired-end --calc-pme -p {params.threads} {input.bam} {params.indir} {params.outdir} && '
 		'find ./transcript-counts/ -name "*.genes.results" -exec cp {{}} output-data/genes/ \; && '
 		'find ./transcript-counts/ -name "*.isoforms.results" -exec cp {{}} output-data/isoforms/ \; '
 
