@@ -171,7 +171,7 @@ rule rsem:
 		'mkdir -p output-data/genes && '
 		'mkdir -p output-data/isoforms && '
 		'cp {params.outdir}/{params.outpre}.genes.results output-data/genes/ && '
-		'cp {params.outdir}{params.outpre}.isoforms.results output-data/isoforms/ '
+		'cp {params.outdir}/{params.outpre}.isoforms.results output-data/isoforms/ '
 		#'find ./transcript-counts/ -name "*.genes.results" -exec cp {{}} output-data/genes/ \; && '
 		#'find ./transcript-counts/ -name "*.isoforms.results" -exec cp {{}} output-data/isoforms/ \; '
 
