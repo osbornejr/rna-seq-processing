@@ -30,7 +30,7 @@ rule rsem_reference:
 
         params:
                 outdir = 'reference-index/'+config["ref_genome"]+'/'+config["ref_genome"]+'',
-		threads = 8
+		threads = 16
 
         output:
                 grp = 'reference-index/'+config["ref_genome"]+'/'+config["ref_genome"]+'.grp',
@@ -60,7 +60,7 @@ rule align:
 		indir = 'reference-index/'+config["ref_genome"],
 		tempdir = '$PBS_JOBFS',
 		outdir = 'aligned-reads/{sample}/{sample}',
-		threads = 8
+		threads = 16
 	output:
 		'aligned-reads/{sample}/{sample}_single_pass/Aligned.sortedByCoord.out.bam',
 		'aligned-reads/{sample}/{sample}_single_pass/Aligned.toTranscriptome.out.bam'
@@ -87,18 +87,19 @@ rule align_pass_1:
 		tempdir = '$PBS_JOBFS',
 		outdir = 'aligned-reads/{sample}/{sample}_pass_1',
 		rmbam = 'aligned-reads/{sample}/{sample}_pass_1/Aligned.out.bam',
-		threads = 8
+		threads = 16
 	output:
-		temp('aligned-reads/{sample}/{sample}_pass_1/SJ.out.tab')
+		'aligned-reads/{sample}/{sample}_pass_1/SJ.out.tab'
 	#conda: "environment.yml"
 	shell:		
-		'set +u && '
-		'eval "$(conda shell.bash hook)" && '
-		'conda activate rna-seq && '
-		'set -u && '
+		#'set +u && '
+		#'eval "$(conda shell.bash hook)" && '
+		#'conda activate rna-seq && '
+		#'set -u && '
 		#rm -rf {params.outdir} && \
 		#mkdir {params.outdir} && \
 		#cd {params.outdir} && \
+		'mkdir -p {params.outdir} &&'
 		'STAR --runThreadN {params.threads} '
 		'--outFileNamePrefix {params.outdir}/ '
 		'--genomeDir {params.indir} '
@@ -130,11 +131,12 @@ rule align_pass_2:
 		threads = 16
 	output:
 		#temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.sortedByCoord.out.bam'),
-		temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.toTranscriptome.out.bam')
+		'aligned-reads/{sample}/{sample}_pass_2/Aligned.toTranscriptome.out.bam'
 	shell:
 		#'rm -rf {params.outdir} && '
 		#'mkdir {params.outdir} && '
 		#'cd {params.outdir} && '
+		'mkdir -p {params.outdir} &&'
 		'STAR --runThreadN {params.threads} '
 		'--genomeDir {params.indir} '
 		'--outFileNamePrefix {params.outdir}/ '
@@ -156,7 +158,7 @@ rule rsem:
 		indir  = 'reference-index/'+config["ref_genome"]+'/'+config["ref_genome"], 
 		outdir = 'transcript-counts/{sample}',
                 outpre = '{sample}_RSEM',
-		threads = 8
+		threads = 16
 
 	output: 'output-data/isoforms/{sample}_RSEM.isoforms.results',
 		'output-data/genes/{sample}_RSEM.genes.results'
