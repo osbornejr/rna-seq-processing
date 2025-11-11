@@ -89,7 +89,7 @@ rule align_pass_1:
 		rmbam = 'aligned-reads/{sample}/{sample}_pass_1/Aligned.out.bam',
 		threads = 8
 	output:
-		temp('aligned-reads/{sample}/{sample}_pass_1/SJ.out.tab')
+		'aligned-reads/{sample}/{sample}_pass_1/SJ.out.tab'
 	#conda: "environment.yml"
 	shell:		
 		'set +u && '
@@ -128,9 +128,9 @@ rule align_pass_2:
 		tempdir = '$PBS_JOBFS',
 		outdir = 'aligned-reads/{sample}/{sample}_pass_2',
 		threads = 16
-	output:
+	output:##2025 note: do we want this to be discarded automatically? Depends on directory size(s)
 		#temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.sortedByCoord.out.bam'),
-		temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.toTranscriptome.out.bam')
+		'aligned-reads/{sample}/{sample}_pass_2/Aligned.toTranscriptome.out.bam'
 	shell:
 		#'rm -rf {params.outdir} && '
 		#'mkdir {params.outdir} && '
@@ -146,7 +146,17 @@ rule align_pass_2:
 		'--quantMode TranscriptomeSAM GeneCounts '
 		#'mv {params.tempdir}/* {params.outdir}' 
 
-
+##2025 note: if it is ever necessary, this could be optimised much more for a HPC by running each constituent part separately.
+# eg. for a given input alignment:
+#FIRST COMMAND (only runs on a single process, can be looong dependning on size of alignment)
+#rsem-parse-alignments reference-index/<chosen-ref>/<chosen-ref> transcript-counts/polyA_plus_sample_X/polyA-plus_X.temp/polyA_plus_sample_5 transcript-counts/polyA_plus_sample_X/polyA-plus_X.stat/polyA_plus_sample_5
+#       aligned-reads/polyA_plus_sample_5/polyA-plus_5_pass_2/Aligned.toTranscriptome.out.bam 3 -tag XM
+#SECOND COMMAND (also single process, pretty quick though)
+#rsem-build-read-index 32 1 0 transcript-counts/polyA_plus_sample_8/polyA_plus_sample_8.temp/polyA_plus_sample_8_alignable_1.fq transcript-counts/polyA_plus_sample_8/polyA_plus_sample_8.temp/polyA_plus_sample_8_alignable_2.fq
+#THIRD COMMAND (runs in parallel for most of run, may trigger gibbs automatically?) 
+#rsem-run-em reference-index/CDCFrontier_v2.0/CDCFrontier_v2.0 3 transcript-counts/polyA_plus_sample_1/polyA_plus_sample_1 transcript-counts/polyA_plus_sample_1/polyA_plus_sample_1.temp/polyA_plus_sample_1 transcript-counts/polyA_plus_sample_1/polyA_plus_sample_1.stat/polyA_plus_sample_1 -p 16 -b aligned-reads/polyA_plus_sample_1/polyA_plus_sample_1_pass_2/Aligned.toTranscriptome.out.bam 0 --gibbs-out
+#FOURTH COMMAND (also in parallel)
+#rsem-run-gibbs reference-index/CDCFrontier_v2.0/CDCFrontier_v2.0 transcript-counts/polyA_minus_sample_3/polyA_minus_sample_3.temp/polyA_minus_sample_3 transcript-counts/polyA_minus_sample_3/polyA_minus_sample_3.stat/polyA_minus_sample_3 200 1000 1 -p 16
 rule rsem:
 	input: 
 	 	bam = 'aligned-reads/{sample}/{sample}_pass_2/Aligned.toTranscriptome.out.bam',
@@ -184,4 +194,5 @@ rule rsem:
 #	#conda: "environment.yml"
 #	shell:
 #		'htseq-count -m union -s no -t gene -i ID -r pos -f bam {input.bam} {input.gff} &> {output[0]} && '
+
 #		'grep {GENE_CODE} {output[0]} | sed "s/gene://g" > {output[1]}'
