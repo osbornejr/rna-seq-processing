@@ -51,7 +51,7 @@ rule rsem_reference:
                 'set -u && '
                 'rsem-prepare-reference {input.fasta} --star -p {params.threads} --gtf {input.gtf} {params.outdir}'
 
-##2025 update-- have left the single pass align as is with temp dir in case it is needed again (eg on gadi) other rules changed to work without temp dir on aws
+##2025 update-- have left the single pass align as is with temp dir in case it is needed again (eg on gadi) other rules changed to work without temp dir on aws. note all rules have threads manually set as parameters now rather than by cluster config... in long run this would be set now by snakemake profiles.
 rule align:
 	input:
 		r1 = 'clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz',
