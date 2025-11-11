@@ -1,4 +1,6 @@
 #Transcriptome assembly using reference genome
+###2025 note: For reference genome runs, very large machines are not necessary for any rules. 8 or 16 CPUS with ~32GB is what each needs at max capacity, but there are still large periods when it will run on single thread (see rsem rule note). The whole thing for all 24 chickpea samples can be run on a machine the size above in a day or so.
+## if a faster turn around is needed, then running each job on its own node of that size (i.e. cluster style) is MUCH more efficient than one large AWS style instance, which will only use 5-20% of CPU at any one time.
 
 #This sets up the reference geneome that STAR will align to. Only needs to be done once for all subsequent STAR alignment jobs 
 #NOTE: irrelevant at present, but might be necessary for quantification that doesn't use RSEM (i.e. per gene rather than per-transcript)
