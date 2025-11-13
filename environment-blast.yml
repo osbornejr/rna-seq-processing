@@ -1,0 +1,7 @@
+name: rna-seq
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - blast
