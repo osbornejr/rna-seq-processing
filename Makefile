@@ -4,7 +4,9 @@ edit: ## vim command to initialise editing environment
 conda: ##command to activate conda and enviroment
 	source ~/.profile
 	conda activate rna-seq
-
+blast_db: @@make blast core_nt database on aws instance
+	mkdir blast_db
+	aws s3 cp --no-sign-request s3://ncbi-blast-databases/2025-09-11-01-05-02/ blast_db/ --exclude "*" --include "core_nt*" --recursive
 
 #unison setup
 PLATFORM := $(shell uname)
