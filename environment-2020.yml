@@ -9,9 +9,9 @@ dependencies:
   - rsem
   - bowtie=1.3.0
   - trinity=2.8.5
+  - star
 #- detonate
   - blast=2.7.1
-  - star
 #- yq
 #- rnasamba
   - snakemake
