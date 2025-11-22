@@ -22,6 +22,12 @@ rna_types_list = ["mrna", "lncrna", "rrna", "trna", "snrna", "scrna", "ncrna"]
 # -------------------------------
 def select_hit(table_lines):
     for line in table_lines:
+        split = line.split()
+        if len(split) >= 2 and split[1] == "Cicer" and split[2] == "arietinum":
+            ##gets the highest rated Cicer transcript that is not PREDICTED: if possible
+            print("Non predicted Cicer transcript found:",split[0])
+            return line
+    for line in table_lines:
         if "Cicer arietinum" in line:
             ##gets the highest rated Cicer transcript if possible
             return line
