@@ -22,4 +22,4 @@ python3 scripts/filter_blastn_just_top_any_species.py results.txt filtered_resul
 cut -d ',' -f 1 filtered_output_just_top_any_species.txt > filtered_names_just_top_any_species.txt
 ## (this command needs full transcriptome names derived from Trinity.fasta
 comm -23 <(sort trinity_names.txt) <(sort filtered_names.txt) > missing.txt
-while IFS= read -r p; do rg -A1 --fixed-strings "$p" Trinity.fasta; done < missing.txt > missing.fasta
+while IFS= read -r p; do rg -A1 --no-context-separator "^>${p}\b" Trinity.fasta; done < missing_ref-seq.txt >missing_ref-seq.fasta

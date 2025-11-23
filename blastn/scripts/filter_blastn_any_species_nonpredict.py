@@ -33,16 +33,16 @@ def select_hit(table_lines):
    #         return line
    # ## if no cicer, we need to find top of table
    ## first check if there is a general transcript that is not predicted
-   # line_counter = 0
-   # table_top = 0
-   # for line in table_lines:
-   #     line_counter += 1
-   #     if "Sequences producing significant alignments:" in line:
-   #         table_top = line_counter
-   #     if table_top>0 and line_counter> table_top:
-   #         ##gets highest rated general transript that is not predicted
-   #         if "PREDICTED:" not in line and len(line.strip())>0:
-   #             return line
+    line_counter = 0
+    table_top = 0
+    for line in table_lines:
+        line_counter += 1
+        if "Sequences producing significant alignments:" in line:
+            table_top = line_counter
+        if table_top>0 and line_counter> table_top:
+            ##gets highest rated general transript that is not predicted
+            if "PREDICTED:" not in line and len(line.strip())>0:
+                return line
     
     ##else just get top line
     line_counter = 0

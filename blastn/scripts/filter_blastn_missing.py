@@ -21,30 +21,17 @@ rna_types_list = ["mrna", "lncrna", "rrna", "trna", "snrna", "scrna", "ncrna"]
 # Helper: choose best hit line
 # -------------------------------
 def select_hit(table_lines):
-   # for line in table_lines:
-   #     split = line.split()
-   #     if len(split) >= 2 and split[1] == "Cicer" and split[2] == "arietinum":
-   #         ##gets the highest rated Cicer transcript that is not PREDICTED: if possible
-   #         print("Non predicted Cicer transcript found:",split[0])
-   #         return line
-   # for line in table_lines:
-   #     if "Cicer arietinum" in line:
-   #         ##gets the highest rated Cicer transcript if possible
-   #         return line
-   # ## if no cicer, we need to find top of table
-   ## first check if there is a general transcript that is not predicted
-   # line_counter = 0
-   # table_top = 0
-   # for line in table_lines:
-   #     line_counter += 1
-   #     if "Sequences producing significant alignments:" in line:
-   #         table_top = line_counter
-   #     if table_top>0 and line_counter> table_top:
-   #         ##gets highest rated general transript that is not predicted
-   #         if "PREDICTED:" not in line and len(line.strip())>0:
-   #             return line
-    
-    ##else just get top line
+    for line in table_lines:
+        split = line.split()
+        if len(split) >= 2 and split[1] == "Cicer" and split[2] == "arietinum":
+            ##gets the highest rated Cicer transcript that is not PREDICTED: if possible
+            #print("Non predicted Cicer transcript found:",split[0])
+            return line
+    for line in table_lines:
+        if "Cicer arietinum" in line:
+            ##gets the highest rated Cicer transcript if possible
+            return line
+    ## if no cicer, we need to find top of table
     line_counter = 0
     table_top = 0
     for line in table_lines:
@@ -54,8 +41,6 @@ def select_hit(table_lines):
         if table_top>0 and line_counter == table_top + 2:
             ##gets highest rated general transcript
             return line
-
-
     return None
 
 # -------------------------------
@@ -160,6 +145,7 @@ with open(input_file) as f:
                 # if line starts with >, table finished a few lines back
                 selected = select_hit(table_lines)
                 if selected:
+                    print(selected)
                     seq_id = selected.split()[0]
                     table_parts = selected.strip().split()
                     if len(table_parts) >= 2:
