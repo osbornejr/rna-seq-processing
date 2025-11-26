@@ -6,3 +6,6 @@ channels:
 dependencies:
   - blast
   - mmseqs2
+  - samtools
+  - multiqc
+  - sambamba
