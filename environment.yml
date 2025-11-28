@@ -8,4 +8,5 @@ dependencies:
   - mmseqs2
   - samtools
   - multiqc
-  - sambamba
+  - cd-hit
+ 
