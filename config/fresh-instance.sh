@@ -73,6 +73,9 @@ conda install -c conda-forge mamba
 #ENV
 #pull repo with submodules
 git clone --recurse-submodules https://github.com/osbornejr/rna-seq-processing.git
+## add git details
+git config --global user.email "joelwilliamrobertson@gmail.com"
+git config --global user.name "Joel Robertson"
 #change permissions for all dirs in repo
 #sudo chmod -R 644 rna-seq-processing
 #sudo chown -R ec2-user:ec2-user rna-seq-processing

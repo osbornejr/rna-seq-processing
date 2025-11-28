@@ -5,3 +5,7 @@ channels:
   - defaults
 dependencies:
   - blast
+  - mmseqs2
+  - samtools
+  - multiqc
+  - cd-hit

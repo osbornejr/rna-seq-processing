@@ -1,15 +1,15 @@
-name: rna-seq
+name: de-novo
 channels:
   - conda-forge
   - bioconda
-  - defaults
+  #- defaults
 dependencies:
   - fastp=0.20.1
   - samtools=1.3
   - rsem
   - bowtie=1.3.0
   - trinity=2.8.5
-  - star
+# - star
 #- detonate
   - blast=2.7.1
 #- yq
