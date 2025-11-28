@@ -249,7 +249,7 @@ rule cluster_assembly:
 		'-c 0.98 '
 		'--createdb-mode 0 &> {log} && '
 		'cp {params.outpf}_rep_seq.fasta '+trinitydir+'Trinity_cluster.fasta'
-
+##2025 note: noticed a bug in trinity where the align_and_estimate_abundance.pl script doesnt pass the thread count to bowtie-build. can easily edit this script to allow it to do so (adding --threads $thread_count to the appropriate line. Could be an easy pull request if it ever comes up again... TODO
 rule trinity_abundance_reference:
 	input:
 		trinitydir+'Trinity_cluster.fasta'
