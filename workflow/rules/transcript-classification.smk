@@ -72,3 +72,4 @@ rule rnasamba_classify:
 		'rnasamba classify rnasamba/code-classification.tsv {input.coding} {input.training_set} && '
 		'''awk '$NF=="noncoding" {{print $1}}' rnasamba/non-code-classification.tsv > {output.noncoding} && '''
 		'''awk '$NF=="coding" {{print $1}}' rnasamba/code-classification.tsv > {output.coding} '''
+

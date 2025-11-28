@@ -276,7 +276,7 @@ rule trinity_abundance:
 		'--trinity_mode '
 		'--thread_count {params.threads} '
 		'--output_dir {params.outdir} '
-		'--rsem_add_opts "--calc-pme " >> {log} && '
+		'--rsem_add_opts "--calc-pme " &> {log} && '
 		'for file in {params.outdir}/*; do mv $file {params.outdir}_$(basename $file); done && '
 		'rm -r {params.outdir} && '
 		'mkdir -p output-data/genes && '
