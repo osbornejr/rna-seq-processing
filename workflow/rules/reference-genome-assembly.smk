@@ -42,6 +42,7 @@ rule rsem_reference:
                 SAindex = 'reference-index/'+config["ref_genome"]+'/SAindex',
 		#refind = directory('reference-index/'+config["ref_genome"]+'')
 
+        log:	'logs/rsem-reference/{sample}_RSEM.log'
         #conda: "environment.yml"
 
         shell:
@@ -49,7 +50,7 @@ rule rsem_reference:
                 'eval "$(conda shell.bash hook)" && '
                 'conda activate rna-seq && '
                 'set -u && '
-                'rsem-prepare-reference {input.fasta} --star -p {params.threads} --gtf {input.gtf} {params.outdir}'
+                'rsem-prepare-reference {input.fasta} --star -p {params.threads} --gtf {input.gtf} {params.outdir} &> {log}'
 
 ##2025 update-- have left the single pass align as is with temp dir in case it is needed again (eg on gadi) other rules changed to work without temp dir on aws. note all rules have threads manually set as parameters now rather than by cluster config... in long run this would be set now by snakemake profiles.
 rule align:
@@ -66,7 +67,10 @@ rule align:
 	output:
 		'aligned-reads/{sample}/{sample}_single_pass/Aligned.sortedByCoord.out.bam',
 		'aligned-reads/{sample}/{sample}_single_pass/Aligned.toTranscriptome.out.bam'
-	shell:
+        
+        log:	'logs/star-alignment/{sample}_STAR.log'
+	
+        shell:
 		#'rm -rf {params.outdir} && '
 		#'mkdir {params.outdir} && '
 		#'cd {params.outdir} && '
@@ -76,7 +80,7 @@ rule align:
 		'--readFilesIn {input.r1} {input.r2} '
 		'--readFilesCommand zcat '
 		'--outSAMtype BAM SortedByCoordinate '
-		'--quantMode TranscriptomeSAM GeneCounts && '
+		'--quantMode TranscriptomeSAM GeneCounts &> {log} && '
 		'mv {params.tempdir}/* {params.outdir}'
 
 rule align_pass_1:
@@ -93,6 +97,7 @@ rule align_pass_1:
 	output:
 		'aligned-reads/{sample}/{sample}_pass_1/SJ.out.tab'
 	#conda: "environment.yml"
+        log:	'logs/star-alignment-pass-1/{sample}_STAR.log'
 	shell:		
 		#'set +u && '
 		#'eval "$(conda shell.bash hook)" && '
@@ -107,7 +112,7 @@ rule align_pass_1:
 		'--genomeDir {params.indir} '
 		'--readFilesIn {input.r1} {input.r2} '
 		'--readFilesCommand zcat '
-		'--outSAMtype BAM Unsorted && rm {params.rmbam} '
+		'--outSAMtype BAM Unsorted &> {log} && rm {params.rmbam} '
 		#'mv {params.tempdir}/* {params.outdir}' 
 
 rule filter:
@@ -134,7 +139,10 @@ rule align_pass_2:
 	output:##2025 note: do we want this to be discarded automatically? Depends on directory size(s)
 		#temp('aligned-reads/{sample}/{sample}_pass_2/Aligned.sortedByCoord.out.bam'),
 		'aligned-reads/{sample}/{sample}_pass_2/Aligned.toTranscriptome.out.bam'
-	shell:
+	
+        log:	'logs/star-alignment-pass-2/{sample}_STAR.log'
+	
+        shell:
 		#'rm -rf {params.outdir} && '
 		#'mkdir {params.outdir} && '
 		#'cd {params.outdir} && '
@@ -147,7 +155,7 @@ rule align_pass_2:
 		'--outSAMtype BAM Unsorted '
 		#'--outSAMtype BAM SortedByCoordinate '
 		'--sjdbFileChrStartEnd {input.sj_files} '
-		'--quantMode TranscriptomeSAM GeneCounts '
+		'--quantMode TranscriptomeSAM GeneCounts &> {log}'
 		#'mv {params.tempdir}/* {params.outdir}' 
 
 ##2025 note: if it is ever necessary, this could be optimised much more for a HPC by running each constituent part separately.
@@ -179,7 +187,7 @@ rule rsem:
 
 	shell:
 		'mkdir -p {params.outdir} &&'
-		'rsem-calculate-expression --bam --paired-end --calc-pme -p {params.threads} {input.bam} {params.indir} {params.outdir}/{params.outpre} && '
+		'rsem-calculate-expression --bam --paired-end --calc-pme -p {params.threads} {input.bam} {params.indir} {params.outdir}/{params.outpre} &> {log} && '
 		'mkdir -p output-data/genes && '
 		'mkdir -p output-data/isoforms && '
 		'cp {params.outdir}/{params.outpre}.genes.results output-data/genes/ && '
