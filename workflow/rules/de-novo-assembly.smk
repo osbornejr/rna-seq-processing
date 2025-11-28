@@ -231,27 +231,48 @@ rule trinity_assembly_phase_2_full:
 		'mv '+trinitydir+'Trinity.fasta '+basedir+trinitydir+' >> {log} && '
 		'tar -cvzf '+basedir+trinitydir+'phase_2_full.tar.gz '+trinitydir+' >> {log}') 
 
+##added 2025. using mmseq2 to cluster transcriptome and remove duplicates/very similar transcripts. Done manually so not tested in pipeline, few parameters but following trinity recommendation to be subtle with it (they use cd-hit-est which we could here, but mmseqs2 is much faster and more configurable. main thing is -c (coverage) at 0.98 as in the trinity example which seems to give good result, also using cov-mode 5 which ensures that the two transcripts are only clustered if they are of similar length-- we don't want to merge in potential noncoding strands that have same sub coverage as much larger mRNA for example-- this is the kind of relationship the ceRNA hypothesis predicts 
+rule cluster_assembly:
+	input:
+		trinity = trinitydir+'Trinity.fasta'
+	params:
+		outpf = trinitydir+'mmseqs-cluster'
+	output:
+		trinitydir+'Trinity_cluster.fasta'
+	log: 
+		basedir+'logs/clustering/mmseq_cluster.out'
+	shell:
+		'mmseqs easy-cluster {input.trinity}  {params.outpf} tmp_directory '
+		'--min-seq-id 0.9 '
+		'--cov-mode 5 '
+		'--cluster-mode 2 '
+		'-c 0.98 '
+		'--createdb-mode 0 &> {log} && '
+		'cp {params.outpf}_rep_seq.fasta '+trinitydir+'Trinity_cluster.fasta'
+
 rule trinity_abundance_reference:
 	input:
-		trinitydir+'Trinity.fasta'
+		trinitydir+'Trinity_cluster.fasta'
 	output:
-		trinitydir+'Trinity.fasta.rsem.idx.fa'
+		trinitydir+'Trinity_cluster.fasta.RSEM.idx.fa'
+	params:
+		threads = 16
 	log:
 		basedir+'logs/trinity/trinity_abundance_reference.out'		
 	shell:
 		'$TRINITY_HOME/util/align_and_estimate_abundance.pl '
-		'--transcripts '+trinitydir+'Trinity.fasta '
+		'--transcripts '+trinitydir+'Trinity_cluster.fasta '
 		'--est_method RSEM '
 		'--aln_method bowtie '
 		'--trinity_mode '
-		'--thread_count {threads} '
+		'--thread_count {params.threads} '
 		'--prep_reference >> {log} '
 
 	
 rule trinity_abundance:
 	input:
-		trinitydir+'Trinity.fasta',
-		trinitydir+'Trinity.fasta.rsem.idx.fa',
+		trinitydir+'Trinity_cluster.fasta',
+		trinitydir+'Trinity_cluster.fasta.RSEM.idx.fa',
 		r1 = basedir+'clean-reads/{sample}/{sample}_read_1_fastp.fastq.gz',
 		r2 = basedir+'clean-reads/{sample}/{sample}_read_2_fastp.fastq.gz'
 
@@ -267,7 +288,7 @@ rule trinity_abundance:
 
 	shell:	
 		'$TRINITY_HOME/util/align_and_estimate_abundance.pl '
-		'--transcripts '+trinitydir+'Trinity.fasta '
+		'--transcripts '+trinitydir+'Trinity_cluster.fasta '
 		'--seqType fq '
 		'--left {input.r1} '
 		'--right {input.r2} '
@@ -276,7 +297,7 @@ rule trinity_abundance:
 		'--trinity_mode '
 		'--thread_count {params.threads} '
 		'--output_dir {params.outdir} '
-		'--rsem_add_opts "--calc-pme " >> {log} && '
+		'--rsem_add_opts "--calc-pme " &> {log} && '
 		'for file in {params.outdir}/*; do mv $file {params.outdir}_$(basename $file); done && '
 		'rm -r {params.outdir} && '
 		'mkdir -p output-data/genes && '
