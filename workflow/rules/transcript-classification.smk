@@ -73,3 +73,17 @@ rule rnasamba_classify:
 		'''awk '$NF=="noncoding" {{print $1}}' rnasamba/non-code-classification.tsv > {output.noncoding} && '''
 		'''awk '$NF=="coding" {{print $1}}' rnasamba/code-classification.tsv > {output.coding} '''
 
+#find ./ -name "RSEM.*" -exec sh -c '
+#        path="$1"
+#        # Remove leading "./"
+#        clean="${path#./}"
+#        # Extract top-level directory name
+#        top="${clean%%/*}"
+#        # Extract original filename
+#        filename="${clean##*/}"
+#        # Directory where the file currently lives
+#        dir="${clean%/*}"
+#        # Build new full path
+#        newpath="$dir/${top}_${filename}"
+#        echo "[DRY RUN] $path → $newpath"
+#    ' _ {} \;
